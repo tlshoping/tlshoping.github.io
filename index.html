@@ -1,0 +1,751 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TL shop</title>
+    <link rel="stylesheet" href="TL_shop.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100..900;1,100..900&display=swap"
+        rel="stylesheet">
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script>
+        if (typeof Telegram === 'undefined') {
+            console.error('Telegram Web App SDK is not loaded.');
+        }
+    </script>
+    <script src="https://api-maps.yandex.ru/2.1/?apikey=aef40ef5-c047-4b60-ab1e-7a77961a192c&lang=ru_RU"
+        type="text/javascript"></script>
+</head>
+
+<body>
+    <div class="top"></div>
+    <main>
+        <div class="main_page" id="mainPage">
+            <div class="address_notification" id="addressNotification">
+                <p class="address_notification_text" id="addressNotificationText">Укажите адрес доставки</p>
+                <p class="address_notification_discript" id="addressNotificationDiscript">С адресом мы покажем время
+                    доставки</p>
+                <div class="address_notification_container">
+                    <div class="address_notification_later" id="addressNotificationLater">Позже</div>
+                    <div class="address_notification_select" id="addressNotificationSelect">Указать</div>
+                </div>
+            </div>
+            <div class="address_question show hide" id="addressQuestion">
+                <p class="address_question_text">Заказ на этот адрес?</p>
+                <p class="address_question_discript" id="addressQuestionDiscript"></p>
+                <div class="address_notification_container">
+                    <div class="address_question_no" id="addressQuestionNo">Нет</div>
+                    <div class="address_question_yes" id="addressQuestionYes">Да</div>
+                </div>
+            </div>
+            <div class="address_header" id="addressHeader">
+                <div class="address_header_box">
+                    <p class="address_header_text" id="addressHeaderText">Укажите адрес</p>
+                    <svg width="8" height="9" viewBox="0 0 11 19" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M1.5 1.5L8.77409 8.41039C9.17485 8.79111 9.19071 9.42476 8.80948 9.82504L1.5 17.5"
+                            stroke="#0C0C0C" stroke-width="3" stroke-linecap="round"></path>
+                    </svg>
+                </div>
+                <p class="address_header_description" id="addressHeaderDescription"></p>
+            </div>
+            <div class="no_delivery hide" id="noDelivery">
+                <p class="no_delivery_text">По этому адресу пока что не доставляем</p>
+                <svg width="24" height="25" viewBox="0 0 24 25" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="12" cy="12.5" r="12" fill="#FF0000" />
+                    <circle cx="12" cy="18.5" r="1" fill="#F6F6F6" />
+                    <rect x="11" y="4.5" width="2" height="11" rx="1" fill="#F6F6F6" />
+                </svg>
+            </div>
+            <div class="pickup_list_container">
+                <p class="pickup_list_name">Магазины</p>
+                <ul class="pickup_list">
+
+                </ul>
+            </div>
+        </div>
+        <div class="map_page hide" id="mapPage">
+            <div class="close_map_but" id="closeMapBut">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" width="24" height="24" viewBox="0 0 24 24"
+                    class="UiKitUiKitIcon_m UiKitImgIcon UiKitUiKitIcon_root UiKitImgIcon" role="img"
+                    aria-hidden="true">
+                    <path fill="#ffffff" fill-rule="evenodd"
+                        d="M18.646 6.754a.5.5 0 0 0 0-.708l-.692-.692a.5.5 0 0 0-.708 0L12 10.6 6.754 5.354a.5.5 0 0 0-.708 0l-.692.692a.5.5 0 0 0 0 .708L10.6 12l-5.246 5.246a.5.5 0 0 0 0 .708l.692.692a.5.5 0 0 0 .708 0L12 13.4l5.246 5.246a.5.5 0 0 0 .708 0l.692-.692a.5.5 0 0 0 0-.708L13.4 12z"
+                        clip-rule="evenodd"></path>
+                </svg>
+            </div>
+            <div class="search_map_but" id="searchMapBut">
+                <svg xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="24" height="24" viewBox="0 0 48 48">
+                    <path fill="#ffffff"
+                        d="M 20.5 6 C 12.515556 6 6 12.515562 6 20.5 C 6 28.484438 12.515556 35 20.5 35 C 23.773158 35 26.788919 33.893018 29.220703 32.050781 L 38.585938 41.414062 A 2.0002 2.0002 0 1 0 41.414062 38.585938 L 32.050781 29.220703 C 33.893017 26.788918 35 23.773156 35 20.5 C 35 12.515562 28.484444 6 20.5 6 z M 20.5 10 C 26.322685 10 31 14.677319 31 20.5 C 31 23.295711 29.914065 25.820601 28.148438 27.697266 A 2.0002 2.0002 0 0 0 27.701172 28.144531 C 25.824103 29.912403 23.29771 31 20.5 31 C 14.677315 31 10 26.322681 10 20.5 C 10 14.677319 14.677315 10 20.5 10 z">
+                    </path>
+                </svg>
+            </div>
+            <p class="map_geocode" id="mapGeocode"></p>
+            <img class="map_pin" src="img32\map-pin.webp">
+            <div class="map_select_adress" id="mapSelectAdress">
+                <p class="map_select_adress_text">Я здесь</p>
+            </div>
+            <div id="map" class="map"></div>
+        </div>
+        <div class="search_map hide" id="searchMap">
+            <div class="search_map_header">
+                <div class="close_search_map_but" id="closeSearchMapBut">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" width="24" height="24" viewBox="0 0 24 24"
+                        class="UiKitUiKitIcon_m UiKitImgIcon UiKitUiKitIcon_root UiKitImgIcon" role="img"
+                        aria-hidden="true">
+                        <path fill="currentColor" fill-rule="#ffffff"
+                            d="m7.8 11 5.246-5.246a.5.5 0 0 0 0-.708l-.692-.692a.5.5 0 0 0-.708 0L4 12l7.646 7.646a.5.5 0 0 0 .708 0l.692-.692a.5.5 0 0 0 0-.708L7.8 13h11.7a.5.5 0 0 0 .5-.5v-1a.5.5 0 0 0-.5-.5z"
+                            clip-rule="evenodd"></path>
+                    </svg>
+                </div>
+                <div class="search_map_contaner" id="searchMapContaner">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" width="24" height="24" viewBox="0 0 24 24"
+                        class="search_map_contaner_icon" aria-hidden="true">
+                        <path fill="currentColor" fill-rule="evenodd"
+                            d="M4 11c0-3.859 3.141-7 7-7s7 3.141 7 7-3.141 7-7 7-7-3.141-7-7m18 11a1 1 0 0 0 0-1.414l-3.975-3.975A8.95 8.95 0 0 0 20 11c0-4.963-4.037-9-9-9s-9 4.037-9 9 4.037 9 9 9a8.95 8.95 0 0 0 5.611-1.975L20.586 22A1 1 0 0 0 22 22"
+                            clip-rule="evenodd"></path>
+                    </svg>
+                    <input class="search_map_input" id="searchMapInput" placeholder="Укажите адрес доставки..."
+                        value="">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" width="24" height="24" viewBox="0 0 24 24"
+                        class="search_map_contaner_close" id="searchMapContanerClose" aria-hidden="true">
+                        <path fill="currentColor" fill-rule="evenodd"
+                            d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10M7.403 7.403a1 1 0 0 1 1.414 0L12 10.586l3.183-3.183a1 1 0 1 1 1.414 1.414L13.414 12l3.183 3.183a1 1 0 0 1-1.414 1.414L12 13.414l-3.183 3.183a1 1 0 0 1-1.414-1.414L10.586 12 7.403 8.817a1 1 0 0 1 0-1.414"
+                            clip-rule="evenodd"></path>
+                    </svg>
+                </div>
+            </div>
+            <ul class="address_search_responses_list" id="addressSearchResponsesList">
+            </ul>
+            <div class="not_found_address hide" id="notFoundAddress">
+                <svg class="not_found_svg" width="24" height="24" viewBox="0 0 16 16" fill="none"
+                    xmlns="http://www.w3.org/2000/svg">
+                    <g clip-path="url(#clip0_493_540)">
+                        <path
+                            d="M5.66663 7.33325C6.21891 7.33325 6.66663 6.88552 6.66663 6.33325C6.66663 5.78097 6.21891 5.33325 5.66663 5.33325C5.11434 5.33325 4.66663 5.78097 4.66663 6.33325C4.66663 6.88552 5.11434 7.33325 5.66663 7.33325Z"
+                            fill="#454545" />
+                        <path
+                            d="M11.3334 6.33325C11.3334 6.88552 10.8856 7.33325 10.3334 7.33325C9.78111 7.33325 9.33337 6.88552 9.33337 6.33325C9.33337 5.78097 9.78111 5.33325 10.3334 5.33325C10.8856 5.33325 11.3334 5.78097 11.3334 6.33325Z"
+                            fill="#454545" />
+                        <path
+                            d="M10.0727 10.9726C10.2398 11.2963 10.6365 11.4264 10.9632 11.263C11.2925 11.0983 11.426 10.6979 11.2614 10.3686C11.2064 10.259 11.1364 10.1563 11.063 10.0584C10.9411 9.89595 10.7572 9.68668 10.4982 9.47948C9.97183 9.05841 9.16036 8.66675 7.99843 8.66675C6.83643 8.66675 6.02495 9.05841 5.4986 9.47948C5.23965 9.68668 5.05569 9.89595 4.93381 10.0584C4.86015 10.1566 4.79316 10.2593 4.7358 10.3679C4.57271 10.6929 4.70839 11.1004 5.03359 11.263C5.36031 11.4264 5.75706 11.2963 5.92409 10.9726C5.93329 10.956 6.05873 10.7389 6.33153 10.5207C6.63851 10.2751 7.16036 10.0001 7.99843 10.0001C8.83643 10.0001 9.35829 10.2751 9.66529 10.5207C9.93809 10.7389 10.0635 10.956 10.0727 10.9726Z"
+                            fill="#454545" />
+                        <path fill-rule="evenodd" clip-rule="evenodd"
+                            d="M7.99996 15.3334C12.05 15.3334 15.3333 12.0501 15.3333 8.00008C15.3333 3.94999 12.05 0.666748 7.99996 0.666748C3.94987 0.666748 0.666626 3.94999 0.666626 8.00008C0.666626 12.0501 3.94987 15.3334 7.99996 15.3334ZM7.99996 13.9955C4.68877 13.9955 2.00451 11.3113 2.00451 8.00008C2.00451 4.68889 4.68877 2.00463 7.99996 2.00463C11.3112 2.00463 13.9954 4.68889 13.9954 8.00008C13.9954 11.3113 11.3112 13.9955 7.99996 13.9955Z"
+                            fill="#454545" />
+                    </g>
+                    <defs>
+                        <clipPath id="clip0_493_540">
+                            <rect width="16" height="16" fill="white" />
+                        </clipPath>
+                    </defs>
+                </svg>
+                <p class="not_found_text">Ничего не найдено</p>
+            </div>
+        </div>
+        <div class="catalog hide" id="catalogPage">
+            <div class="search_menu" id="searchMenu">
+                <div class="search_container">
+                    <div class="search_box">
+                        <input class="search" type="search" placeholder="Поиск">
+                        <svg class="search_svg" width="18" height="19" viewBox="0 0 18 19" fill="none"
+                            xmlns="http://www.w3.org/2000/svg">
+                            <path
+                                d="M8.11111 15.7222C12.0385 15.7222 15.2222 12.5385 15.2222 8.61111C15.2222 4.68375 12.0385 1.5 8.11111 1.5C4.18375 1.5 1 4.68375 1 8.61111C1 12.5385 4.18375 15.7222 8.11111 15.7222Z"
+                                stroke="#454545" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                            <path d="M17 17.5L13.1333 13.6333" stroke="#454545" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round" />
+                        </svg>
+                        <div class="search_but">Отменить</div>
+                    </div>
+                    <div class="search_line"></div>
+                    <div class="search_bar">
+                        <div class="search_loading hide" id="search_loading">
+                            <div class="spinner"></div>
+                        </div>
+                        <div class="not_found hide" id="not_found">
+                            <svg class="not_found_svg" width="24" height="24" viewBox="0 0 16 16" fill="none"
+                                xmlns="http://www.w3.org/2000/svg">
+                                <g clip-path="url(#clip0_493_540)">
+                                    <path
+                                        d="M5.66663 7.33325C6.21891 7.33325 6.66663 6.88552 6.66663 6.33325C6.66663 5.78097 6.21891 5.33325 5.66663 5.33325C5.11434 5.33325 4.66663 5.78097 4.66663 6.33325C4.66663 6.88552 5.11434 7.33325 5.66663 7.33325Z"
+                                        fill="#454545" />
+                                    <path
+                                        d="M11.3334 6.33325C11.3334 6.88552 10.8856 7.33325 10.3334 7.33325C9.78111 7.33325 9.33337 6.88552 9.33337 6.33325C9.33337 5.78097 9.78111 5.33325 10.3334 5.33325C10.8856 5.33325 11.3334 5.78097 11.3334 6.33325Z"
+                                        fill="#454545" />
+                                    <path
+                                        d="M10.0727 10.9726C10.2398 11.2963 10.6365 11.4264 10.9632 11.263C11.2925 11.0983 11.426 10.6979 11.2614 10.3686C11.2064 10.259 11.1364 10.1563 11.063 10.0584C10.9411 9.89595 10.7572 9.68668 10.4982 9.47948C9.97183 9.05841 9.16036 8.66675 7.99843 8.66675C6.83643 8.66675 6.02495 9.05841 5.4986 9.47948C5.23965 9.68668 5.05569 9.89595 4.93381 10.0584C4.86015 10.1566 4.79316 10.2593 4.7358 10.3679C4.57271 10.6929 4.70839 11.1004 5.03359 11.263C5.36031 11.4264 5.75706 11.2963 5.92409 10.9726C5.93329 10.956 6.05873 10.7389 6.33153 10.5207C6.63851 10.2751 7.16036 10.0001 7.99843 10.0001C8.83643 10.0001 9.35829 10.2751 9.66529 10.5207C9.93809 10.7389 10.0635 10.956 10.0727 10.9726Z"
+                                        fill="#454545" />
+                                    <path fill-rule="evenodd" clip-rule="evenodd"
+                                        d="M7.99996 15.3334C12.05 15.3334 15.3333 12.0501 15.3333 8.00008C15.3333 3.94999 12.05 0.666748 7.99996 0.666748C3.94987 0.666748 0.666626 3.94999 0.666626 8.00008C0.666626 12.0501 3.94987 15.3334 7.99996 15.3334ZM7.99996 13.9955C4.68877 13.9955 2.00451 11.3113 2.00451 8.00008C2.00451 4.68889 4.68877 2.00463 7.99996 2.00463C11.3112 2.00463 13.9954 4.68889 13.9954 8.00008C13.9954 11.3113 11.3112 13.9955 7.99996 13.9955Z"
+                                        fill="#454545" />
+                                </g>
+                                <defs>
+                                    <clipPath id="clip0_493_540">
+                                        <rect width="16" height="16" fill="white" />
+                                    </clipPath>
+                                </defs>
+                            </svg>
+                            <p class="not_found_text">Ничего не найдено</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="loading" id="catalog_loading">
+                <div class="spinner"></div>
+            </div>
+        </div>
+        <div class="cart hide" id="cart">
+        </div>
+        <div class="basket hide" id="basketPage">
+            <section class="basket_path" id="basketPath">
+                <p class="basket_name" id="basketName">Корзина</p>
+                <p class="basket_adress" id="basketAdress"></p>
+            </section>
+            <section class="basket_empty" id="basketEmpty">
+                <p class="basket_empty_title">Ваша корзина пуста</p>
+                <svg class="basket_empty_svg" width="284" height="305" viewBox="0 0 284 305" fill="none"
+                    xmlns="http://www.w3.org/2000/svg">
+                    <path d="M53 137.77L161 73V84.2302L53 149V137.77Z" fill="#3B16D0" />
+                    <path d="M161 73L226 116.844V128L161 84.1557V73Z" fill="#2808A7" />
+                    <path
+                        d="M56 203.173V140.172L160.375 79L222.543 119.224C222.828 119.408 223 119.725 223 120.064V182.26L118.625 245L56 203.173Z"
+                        fill="#BCC5FF" />
+                    <path d="M53 137.77L161 73V84.2302L53 149V137.77Z" fill="#490081" />
+                    <path
+                        d="M161 73L224.237 115.655C225.339 116.399 226 117.641 226 118.971V120.477C226 123.682 222.42 125.585 219.763 123.793L161 84.1557V73Z"
+                        fill="#490081" />
+                    <path
+                        d="M168 107.094V106.111C168 102.795 171.804 100.919 174.435 102.938L205.435 126.724C206.422 127.481 207 128.654 207 129.898V131.715C207 135.062 203.134 136.929 200.512 134.847L169.512 110.226C168.557 109.467 168 108.314 168 107.094Z"
+                        fill="#F6F6F6" />
+                    <path
+                        d="M73 152.107V154.553C73 157.742 76.5497 159.649 79.2087 157.888L151.209 110.203C152.327 109.462 153 108.21 153 106.868V105.366C153 102.193 149.483 100.283 146.822 102.011L74.822 148.752C73.6857 149.489 73 150.752 73 152.107Z"
+                        fill="#F6F6F6" />
+                    <path
+                        d="M60.2671 206.206C57.8226 204.573 57.9162 200.949 60.4417 199.444L158.031 141.29C159.354 140.502 161.012 140.543 162.295 141.396L217.749 178.297C220.191 179.922 220.112 183.535 217.601 185.051L120.503 243.686C119.175 244.488 117.503 244.45 116.213 243.588L60.2671 206.206Z"
+                        fill="#011664" />
+                    <path
+                        d="M73 173.12V175.631C73 178.805 76.5181 180.714 79.1792 178.985L151.179 132.208C152.315 131.47 153 130.208 153 128.854V127.288C153 124.131 149.515 122.218 146.852 123.914L74.852 169.746C73.6985 170.48 73 171.753 73 173.12Z"
+                        fill="#F6F6F6" />
+                    <path
+                        d="M56 139.651L118.788 181.739V246L57.776 205.188C56.6662 204.446 56 203.198 56 201.863V139.651Z"
+                        fill="#BCC5FF" />
+                    <path
+                        d="M68 173.094V172.111C68 168.795 71.8039 166.919 74.435 168.938L105.435 192.724C106.422 193.481 107 194.654 107 195.898V197.715C107 201.062 103.134 202.929 100.512 200.847L69.5123 176.226C68.5568 175.467 68 174.314 68 173.094Z"
+                        fill="#F6F6F6" />
+                    <path
+                        d="M168 129.572V128.117C168 124.8 171.806 122.924 174.437 124.945L205.437 148.761C206.422 149.518 207 150.69 207 151.933V152.969C207 156.271 203.226 158.151 200.59 156.162L169.59 132.764C168.589 132.008 168 130.826 168 129.572Z"
+                        fill="#F6F6F6" />
+                    <path d="M118.5 182L223 119V181.722C223 183.134 222.255 184.442 221.041 185.162L118.5 246V182Z"
+                        fill="#7D8DF7" />
+                    <path
+                        d="M131 196.107V198.553C131 201.742 134.55 203.649 137.209 201.888L209.209 154.203C210.327 153.462 211 152.21 211 150.868V149.366C211 146.193 207.483 144.283 204.822 146.011L132.822 192.752C131.686 193.489 131 194.752 131 196.107Z"
+                        fill="#F6F6F6" />
+                    <path
+                        d="M131 217.12V219.631C131 222.805 134.518 224.714 137.179 222.985L209.179 176.208C210.315 175.47 211 174.208 211 172.854V171.288C211 168.131 207.515 166.218 204.852 167.914L132.852 213.746C131.699 214.48 131 215.753 131 217.12Z"
+                        fill="#F6F6F6" />
+                    <path
+                        d="M68 194.572V193.117C68 189.8 71.8061 187.924 74.4369 189.945L105.437 213.761C106.422 214.518 107 215.69 107 216.933V217.969C107 221.271 103.226 223.151 100.59 221.162L69.5903 197.764C68.5888 197.008 68 195.826 68 194.572Z"
+                        fill="#F6F6F6" />
+                    <path d="M53 137.5L118.5 181.5V193.5L53 149.156V137.5Z" fill="#750DC5" />
+                    <path
+                        d="M118.5 181.5L226 117V127.226C226 128.636 225.258 129.942 224.046 130.663L118.5 193.5V181.5Z"
+                        fill="#4E0089" />
+                    <path
+                        d="M100.656 68.6395C100.521 86.8535 100.3 108.474 100.469 109.322L88 116.871V60.9046L100.729 57L179.058 103.992C180.263 104.715 181 106.017 181 107.422V150.475C181 151.909 180.232 153.233 178.988 153.946L177.895 154.571C175.229 156.098 171.908 154.173 171.908 151.1V114.429C171.908 113.035 171.183 111.742 169.994 111.016L100.656 68.6395Z"
+                        fill="#0C0C0C" />
+                    <path d="M100.729 57L182 105L171.908 113L88 60.9437L100.729 57Z" fill="#454545" />
+                    <path d="M172 111.849L182 105V153.732L172 159V111.849Z" fill="#424242" />
+                    <path d="M141 36.0001L141 8.00006" stroke="#C1C1C1" stroke-width="16" stroke-linecap="round" />
+                    <path d="M254.098 94.6909L273.902 74.8973" stroke="#C1C1C1" stroke-width="16"
+                        stroke-linecap="round" />
+                    <path d="M29.8536 90.4416L9.74961 70.9524" stroke="#C1C1C1" stroke-width="16"
+                        stroke-linecap="round" />
+                    <path d="M232.746 225.128L256.997 239.123" stroke="#C1C1C1" stroke-width="16"
+                        stroke-linecap="round" />
+                    <path d="M141 269L141 297" stroke="#C1C1C1" stroke-width="16" stroke-linecap="round" />
+                    <path d="M38.2493 224.883L13.9972 238.877" stroke="#C1C1C1" stroke-width="16"
+                        stroke-linecap="round" />
+                </svg>
+                <p class="basket_empty_add">Добавьте товары из каталога</p>
+                <div class="basket_empty_cataloge_but" id="basketEmptyCatalogeBut">
+                    <p class="basket_empty_cataloge_but_text">Перейти в каталог</p>
+                </div>
+            </section>
+            <section class="basket_full hide" id="basketFull">
+                <div class="delete" id="deleteAllProducts">
+                    <svg class="delete_svg" width="21" height="24" viewBox="0 0 21 24" fill="none"
+                        xmlns="http://www.w3.org/2000/svg">
+                        <path
+                            d="M3.9375 24C3.21563 24 2.59744 23.7387 2.08294 23.216C1.56844 22.6933 1.31163 22.0658 1.3125 21.3333V4H1C0.447715 4 0 3.55228 0 3C0 2.44772 0.447715 2 1 2H6.5625V1C6.5625 0.447715 7.01022 0 7.5625 0H13.4375C13.9898 0 14.4375 0.447715 14.4375 1V2H20C20.5523 2 21 2.44772 21 3C21 3.55228 20.5523 4 20 4H19.6875V21.3333C19.6875 22.0667 19.4303 22.6947 18.9158 23.2173C18.4013 23.74 17.7835 24.0009 17.0625 24H3.9375ZM17.7158 4H3.5V22L17.7158 22V4ZM7 17.6667C7 18.219 7.44772 18.6667 8 18.6667C8.55229 18.6667 9 18.219 9 17.6667V7.66667C9 7.11438 8.55229 6.66667 8 6.66667C7.44772 6.66667 7 7.11438 7 7.66667V17.6667ZM12 17.6667C12 18.219 12.4477 18.6667 13 18.6667C13.5523 18.6667 14 18.219 14 17.6667V7.66667C14 7.11438 13.5523 6.66667 13 6.66667C12.4477 6.66667 12 7.11438 12 7.66667V17.6667Z"
+                            fill="#454545" />
+                    </svg>
+                    <p class="delete_text">Удалить всё</p>
+                </div>
+                <div class="basket_product_list" id="basketProductList">
+                </div>
+                <div class="result">
+                    <p class="result_text">Итого:</p>
+                    <p class="result_text_sum">279 978 ₽</p>
+                    <div class="result_but" id="resultBut">
+                        <p class="result_but_text">Оформить заказ</p>
+                    </div>
+                </div>
+            </section>
+        </div>
+        <div class="form_container hide" id="formContainer">
+            <section class="form_path hide" id="formPath">
+                <svg class="form_back" width="10" height="19" viewBox="0 0 10 19" fill="none"
+                    xmlns="http://www.w3.org/2000/svg">
+                    <path d="M9 1.5L1.72591 8.41039C1.32515 8.79111 1.30929 9.42476 1.69052 9.82504L9 17.5"
+                        stroke="#0C0C0C" stroke-width="2" stroke-linecap="round"></path>
+                </svg>
+                <p class="form_name">Оформление заказа</p>
+            </section>
+            <section class="form hide" id="form">
+                <div class="location_form">
+                    <div class="method_toggle" id="methodToggle">
+                        <div class="method method_delivery" id="methodDelivery">Доставка</div>
+                        <div class="method method_pickup" id="methodPickup">Самовывоз</div>
+                    </div>
+                    <div class="form_adress_discription hide" id="formAdressDiscription">Адрес магазина</div>
+                    <div class="form_no_delivery hide" id="formNoDelivery">
+                        <p class="no_delivery_text">По этому адресу пока что не доставляем</p>
+                        <svg width="24" height="25" viewBox="0 0 24 25" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <circle cx="12" cy="12.5" r="12" fill="#FF0000" />
+                            <circle cx="12" cy="18.5" r="1" fill="#F6F6F6" />
+                            <rect x="11" y="4.5" width="2" height="11" rx="1" fill="#F6F6F6" />
+                        </svg>
+                    </div>
+                    <div class="form_adress_container" id="formAdressContainer">
+                        <div class="form_user_adress" id="formUserAdress"></div>
+                        <div class="form_shop_adress hide" id="formShopAdress"></div>
+                        <svg class="form_adress_edit" id="formAdressEdit" width="24" height="24" viewBox="0 0 24 24"
+                            fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <rect x="1" y="1" width="22" height="22" rx="3" stroke-width="2"></rect>
+                            <path
+                                d="M15.0779 6.50136C15.2368 6.34241 15.4255 6.21632 15.6332 6.1303C15.8409 6.04428 16.0635 6 16.2883 6C16.513 6 16.7356 6.04428 16.9433 6.1303C17.151 6.21632 17.3397 6.34241 17.4986 6.50136C17.6576 6.66031 17.7837 6.84901 17.8697 7.05669C17.9557 7.26436 18 7.48695 18 7.71174C18 7.93653 17.9557 8.15912 17.8697 8.3668C17.7837 8.57447 17.6576 8.76317 17.4986 8.92212L9.32855 17.0922L6 18L6.90779 14.6714L15.0779 6.50136Z"
+                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+                        </svg>
+                    </div>
+                    <div class="full_adress_form" id="fullAdressForm">
+                        <div class="form_apartment">
+                            <input class="input_apartment" id="inputApartment" maxlength="250" id="inputApartment">
+                            <label class="label_apartment" id="labelApartment" for="inputApartment">Кв, офис</label>
+                        </div>
+                        <div class="form_entrance">
+                            <input class="input_entrance" id="inputEntrance" maxlength="250" id="inputEntrance">
+                            <label class="label_entrance" id="labelEntrance" for="inputEntrance">Подъезд</label>
+                        </div>
+                        <div class="form_floor">
+                            <input class="input_floor" id="inputFloor" maxlength="250" id="inputFloor">
+                            <label class="label_floor" id="labelFloor" for="inputFloor">Этаж</label>
+                        </div>
+                        <div class="form_doorphone">
+                            <input class="input_doorphone" id="inputDoorphone" maxlength="250" id="inputDoorphone">
+                            <label class="label_doorphone" id="labelDoorphone" for="inputDoorphone">Домофон</label>
+                        </div>
+                    </div>
+                    <div class="form_comment" id="formComment">
+                        <textarea class="textarea_comment" id="textareaComment" maxlength="250"
+                            id="textareaComment"></textarea>
+                        <label class="label_comment" id="labelComment" for="textareaComment">Комментарий, например, как
+                            проехать</label>
+                    </div>
+                </div>
+                <div class="period_form">
+                    <div class="time_form">
+                        <div class="date_form_delivery" id="dateDeliveryForm">
+                            <p class="date_form_text" id="dateDeliveryFormText">Доставка на</p>
+                            <div class="date_form_day" id="dateFormDay">
+                                <u class="date_form_day_text" id="dateFormDayTextDelivery"></u>
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none"
+                                    viewBox="0 0 16 16">
+                                    <path fill="currentcolor" fill-rule="evenodd"
+                                        d="M14.638 4.624a1.235 1.235 0 0 0-1.747 0L8 9.515l-4.891-4.89A1.235 1.235 0 1 0 1.362 6.37l5.765 5.765a1.236 1.236 0 0 0 1.746 0l5.765-5.765a1.235 1.235 0 0 0 0-1.747"
+                                        clip-rule="evenodd"></path>
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="date_form_pickup hide" id="datePickupForm">
+                            <p class="date_form_text" id="datePickupFormText">Забрать заказ</p>
+                            <div class="date_form_day" id="dateFormDay">
+                                <u class="date_form_day_text" id="dateFormDayTextPickup"></u>
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none"
+                                    viewBox="0 0 16 16">
+                                    <path fill="currentcolor" fill-rule="evenodd"
+                                        d="M14.638 4.624a1.235 1.235 0 0 0-1.747 0L8 9.515l-4.891-4.89A1.235 1.235 0 1 0 1.362 6.37l5.765 5.765a1.236 1.236 0 0 0 1.746 0l5.765-5.765a1.235 1.235 0 0 0 0-1.747"
+                                        clip-rule="evenodd"></path>
+                                </svg>
+                            </div>
+                        </div>
+                        <ul class="hours_delivery" id="hoursDelivery">
+                        </ul>
+                        <ul class="hours_pickup hide" id="hoursPickup">
+                        </ul>
+                    </div>
+                </div>
+                <div class="contact_form" id="contactForm">
+                    <p class="contact_name">Контактные данные</p>
+                    <div class="contact_inputs">
+                        <div class="form_phone">
+                            <input class="input_phone" maxlength="250" id="inputPhone">
+                            <label class="label_phone" id="labelPhone" for="inputPhone">Телефон *</label>
+                        </div>
+                        <div class="form_telegram">
+                            <input class="input_telegram" maxlength="250" id="inputTelegram">
+                            <label class="label_telegram" id="labelTelegram" for="inputTelegram">Телеграм</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="payment_form">
+                    <p class="payment_text">Способ оплаты</p>
+                    <div class="payment_type">
+                        <div class="transfer" id="transfer">Перевод при получении</div>
+                        <div class="cash" id="cash">Наличными при получении</div>
+                    </div>
+                </div>
+                <div class="pay_form">
+                    <div class="bonuses_container" id="bonusesContainer">
+                        <p class="bonuses_info">Списать баллы</p>
+                        <svg id="bonusesOff" width="37" height="20" viewBox="0 0 55 31" fill="none"
+                            xmlns="http://www.w3.org/2000/svg">
+                            <path
+                                d="M39.1049 0.497437H15.663C7.3921 0.497437 0.663002 7.22641 0.663002 15.4974C0.663002 23.7685 7.3921 30.4974 15.663 30.4974H39.1049C47.3758 30.4974 54.1049 23.7685 54.1049 15.4974C54.1049 7.22641 47.3758 0.497437 39.1049 0.497437ZM39.1049 28.4045H15.663C8.54602 28.4045 2.75609 22.6145 2.75609 15.4976C2.75609 8.38058 8.54602 2.59065 15.663 2.59065H39.1049C46.2219 2.59065 52.0118 8.38058 52.0118 15.4976C52.0118 22.6145 46.2219 28.4045 39.1049 28.4045Z"
+                                fill="black" />
+                            <path
+                                d="M15.663 4.96265C9.85401 4.96265 5.12816 9.6885 5.12816 15.4975C5.12816 21.3065 9.85401 26.0323 15.663 26.0323C21.472 26.0323 26.1978 21.3065 26.1978 15.4975C26.1978 9.6885 21.472 4.96265 15.663 4.96265ZM15.663 23.9394C11.0083 23.9394 7.22112 20.1524 7.22112 15.4975C7.22112 10.8425 11.0082 7.05561 15.663 7.05561C20.3177 7.05561 24.1049 10.8425 24.1049 15.4975C24.1049 20.1524 20.3178 23.9394 15.663 23.9394Z"
+                                fill="black" />
+                        </svg>
+                        <svg id="bonusesOn" width="37" height="20" viewBox="0 0 37 20" fill="none"
+                            xmlns="http://www.w3.org/2000/svg">
+                            <path
+                                d="M26.2909 0H10.663C5.14907 0 0.663002 4.48598 0.663002 10C0.663002 15.514 5.14907 20 10.663 20H26.2909C31.8049 20 36.2909 15.514 36.2909 10C36.2909 4.48598 31.8049 0 26.2909 0ZM26.2909 18.6046H10.663C5.91835 18.6046 2.05839 14.7447 2.05839 10C2.05839 5.25535 5.91835 1.39531 10.663 1.39531H26.2909C31.0356 1.39531 34.8955 5.25526 34.8955 9.99992C34.8955 14.7446 31.0356 18.6046 26.2909 18.6046Z"
+                                fill="black" />
+                            <path
+                                d="M26.2909 2.97681C22.4183 2.97681 19.2677 6.12737 19.2677 10C19.2677 13.8727 22.4183 17.0233 26.2909 17.0233C30.1636 17.0233 33.3141 13.8727 33.3141 10C33.3141 6.12737 30.1636 2.97681 26.2909 2.97681ZM26.2909 15.628C23.1878 15.628 20.663 13.1033 20.663 10C20.663 6.89674 23.1877 4.37211 26.2909 4.37211C29.3941 4.37211 31.9188 6.89674 31.9188 10C31.9188 13.1033 29.394 15.628 26.2909 15.628Z"
+                                fill="black" />
+                        </svg>
+                    </div>
+                    <div class="product_price_container">
+                        <p class="product_price_info" id="productPriceInfo"></p>
+                        <p class="product_price" id="productPrice"></p>
+                    </div>
+                    <div class="delivery_price_container" id="deliveryPriceContainer">
+                        <p class="delivery_price_info">Доставка</p>
+                        <p class="delivery_price_container_price" id="deliveryPrice"></p>
+                    </div>
+                    <div class="discount_container hide" id="discountContainer">
+                        <p class="discount_info">Оплата баллами</p>
+                        <p class="discount" id="discount"></p>
+                    </div>
+                    <div class="worker_discount_container" id="workerDiscountContainer">
+                        <p class="worker_discount_info">Скидка сотрудника</p>
+                        <p class="worker_discount" id="workerDiscount"></p>
+                    </div>
+                    <div class="full_price_container">
+                        <p class="full_price_info">Итого</p>
+                        <p class="full_price" id="fullPrice"></p>
+                    </div>
+                    <div class="pay_but disactive_but" id="payBut">
+                        <p class="pay_but_text">Оформить</p>
+                    </div>
+                </div>
+            </section>
+        </div>
+        <div class="profile hide" id="profilePage">
+            <section class="profile_path" id="profilePath">
+                <p class="profile_name">Профиль</p>
+            </section>
+            <section class="profile_body" id="profileBody">
+                <div class="profile_info">
+                    <div class="user_info">
+                        <p class="user_name"></p>
+                        <p class="user_url"></p>
+                    </div>
+                    <div class="balance"></div>
+                </div>
+                <div class="orders_but" id="ordersBut">
+                    <div class="order_info">
+                        <div class="profile_svg">
+                            <svg width="27" height="18" viewBox="0 0 27 18" fill="none"
+                                xmlns="http://www.w3.org/2000/svg">
+                                <rect x="0.5" width="2" height="2" rx="1" fill="#454545" />
+                                <rect x="6.5" width="20" height="2" rx="1" fill="#454545" />
+                                <rect x="0.5" y="8" width="2" height="2" rx="1" fill="#454545" />
+                                <rect x="6.5" y="8" width="20" height="2" rx="1" fill="#454545" />
+                                <rect x="0.5" y="16" width="2" height="2" rx="1" fill="#454545" />
+                                <rect x="6.5" y="16" width="20" height="2" rx="1" fill="#454545" />
+                            </svg>
+                        </div>
+                        <p class="orders_name">Заказы</p>
+                    </div>
+                    <svg width="11" height="19" viewBox="0 0 11 19" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M1.5 1.5L8.77409 8.41039C9.17485 8.79111 9.19071 9.42476 8.80948 9.82504L1.5 17.5"
+                            stroke="#0C0C0C" stroke-width="2" stroke-linecap="round" />
+                    </svg>
+                </div>
+                <div class="help_but" id="helpBut">
+                    <div class="help_info">
+                        <div class="profile_svg"><svg width="15" height="23" viewBox="0 0 15 23" fill="none"
+                                xmlns="http://www.w3.org/2000/svg">
+                                <path
+                                    d="M7.02739 0.34662C6.21169 0.422908 5.53879 0.567661 4.8874 0.808263C4.58616 0.917806 4.09713 1.15645 3.81154 1.33055C3.16993 1.72568 2.53811 2.31252 2.09798 2.92869C1.4329 3.85785 1.00843 5.00218 0.806945 6.41645C0.783472 6.57489 0.769779 6.71182 0.775647 6.7216C0.781516 6.73138 0.867585 6.78811 0.963435 6.84875L1.14144 6.95829L2.45595 7.11478C3.17971 7.20085 3.79589 7.27323 3.82914 7.27714L3.88587 7.28105L3.94064 6.98763C4.26536 5.21735 4.95391 4.13366 6.12171 3.54683C6.644 3.28666 7.20344 3.16343 7.88222 3.16343C8.83093 3.16343 9.64076 3.43924 10.3332 3.99869C10.6677 4.27059 11.0316 4.68528 11.2506 5.04912C11.7162 5.81788 11.8414 6.82332 11.5734 7.64293C11.4971 7.87767 11.3054 8.24346 11.1528 8.44494C10.8281 8.87724 10.3332 9.38192 9.55078 10.0783C8.38689 11.117 7.85874 11.6686 7.446 12.2789C6.64791 13.4565 6.3271 14.7475 6.37601 16.5883L6.38774 17.0714L7.73942 17.0675L9.0911 17.0616L9.09501 16.8562C9.10675 16.2655 9.16738 15.4694 9.22998 15.1055C9.34148 14.4483 9.59969 13.8614 9.99873 13.3646C10.1826 13.1337 10.8809 12.4511 11.4971 11.8975C13.285 10.2896 14.0635 9.33106 14.4861 8.21607C14.9223 7.06979 14.9458 5.70247 14.5487 4.4975C14.2552 3.61138 13.7017 2.77416 12.9525 2.08952C11.8883 1.11537 10.6247 0.573529 8.95417 0.375962C8.63728 0.336839 7.3345 0.319234 7.02739 0.34662Z"
+                                    fill="#454545" />
+                                <path
+                                    d="M6.26642 18.9297C6.2273 19.1214 6.22534 19.1664 6.22534 20.7294V22.3334H7.8098H9.39425V20.7137C9.39229 19.2662 9.38838 19.0784 9.35904 18.92L9.32579 18.7439L7.81762 18.738L6.30945 18.7341L6.26642 18.9297Z"
+                                    fill="#454545" />
+                            </svg>
+                        </div>
+                        <p class="help_name">Поддержка</p>
+                    </div>
+                    <svg width="11" height="19" viewBox="0 0 11 19" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M1.5 1.5L8.77409 8.41039C9.17485 8.79111 9.19071 9.42476 8.80948 9.82504L1.5 17.5"
+                            stroke="#0C0C0C" stroke-width="2" stroke-linecap="round" />
+                    </svg>
+                </div>
+                <div class="rules_but" id="rulesBut">
+                    <div class="rules_info">
+                        <div class="profile_svg">
+                            <svg width="22" height="22" viewBox="0 0 22 22" fill="none"
+                                xmlns="http://www.w3.org/2000/svg">
+                                <g clip-path="url(#clip0_310_544)">
+                                    <path
+                                        d="M10.9999 6.48562C12.7908 6.48562 14.2427 5.03376 14.2427 3.24281C14.2427 1.45186 12.7908 0 10.9999 0C9.20893 0 7.75708 1.45186 7.75708 3.24281C7.75708 5.03376 9.20893 6.48562 10.9999 6.48562Z"
+                                        fill="#454545" />
+                                    <path
+                                        d="M15.4406 9.92372V7.95258H6.55933V9.92372C7.22083 9.92372 7.75704 10.4599 7.75704 11.1214V18.8311C7.75704 19.4926 7.22079 20.0288 6.55933 20.0288V22H15.4406V20.0289C14.7791 20.0289 14.2429 19.4926 14.2429 18.8312V11.1214C14.2429 10.4599 14.7791 9.92372 15.4406 9.92372Z"
+                                        fill="#454545" />
+                                </g>
+                                <defs>
+                                    <clipPath id="clip0_310_544">
+                                        <rect width="22" height="22" fill="white" />
+                                    </clipPath>
+                                </defs>
+                            </svg>
+                        </div>
+                        <p class="rules_name">Правила</p>
+                    </div>
+                    <svg width="11" height="19" viewBox="0 0 11 19" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M1.5 1.5L8.77409 8.41039C9.17485 8.79111 9.19071 9.42476 8.80948 9.82504L1.5 17.5"
+                            stroke="#0C0C0C" stroke-width="2" stroke-linecap="round" />
+                    </svg>
+                </div>
+                <div class="promocode">
+                    <p class="promocode_name">Активировать промо-код:</p>
+                    <input class="promocode_input" type="text" placeholder="Промо-код" />
+                    <div class="check_promocode disactive_but">
+                        <p class="check_promocode_text">Проверить</p>
+                    </div>
+                </div>
+            </section>
+            <section class="orders_path hide" id="ordersPath">
+                <svg class="orders_back" width="10" height="19" viewBox="0 0 10 19" fill="none"
+                    xmlns="http://www.w3.org/2000/svg">
+                    <path d="M9 1.5L1.72591 8.41039C1.32515 8.79111 1.30929 9.42476 1.69052 9.82504L9 17.5"
+                        stroke="#0C0C0C" stroke-width="2" stroke-linecap="round"></path>
+                </svg>
+                <p class="orders_name">Заказы</p>
+            </section>
+            <section class="orders_body hide" id="ordersBody">
+                <div class="orders_list" id="ordersList">
+                </div>
+            </section>
+            <section class="help_path hide" id="helpPath">
+                <svg class="help_back" width="10" height="19" viewBox="0 0 10 19" fill="none"
+                    xmlns="http://www.w3.org/2000/svg">
+                    <path d="M9 1.5L1.72591 8.41039C1.32515 8.79111 1.30929 9.42476 1.69052 9.82504L9 17.5"
+                        stroke="#0C0C0C" stroke-width="2" stroke-linecap="round"></path>
+                </svg>
+                <p class="help_name">Поддержка</p>
+            </section>
+            <section class="help_body hide" id="helpBody">При возникновении трудностей или вопросов - обращайтесь к <a
+                    href="https://t.me/managertlshop">менеджеру</a></section>
+            <section class="rules_path hide" id="rulesPath">
+                <svg class="rules_back" width="10" height="19" viewBox="0 0 10 19" fill="none"
+                    xmlns="http://www.w3.org/2000/svg">
+                    <path d="M9 1.5L1.72591 8.41039C1.32515 8.79111 1.30929 9.42476 1.69052 9.82504L9 17.5"
+                        stroke="#0C0C0C" stroke-width="2" stroke-linecap="round"></path>
+                </svg>
+                <p class="rules_name">Правила</p>
+            </section>
+            <section class="rules_body hide" id="rulesBody">
+                <pre>Пользовательское соглашение интернет-магазина продуктов с содержанием никотина и устройств для их использования "TL Shop"
+                
+1. Термины и определения:
+                
+1.1. В настоящем пользовательском соглашении, если из текста прямо не вытекает иное, следующие термины будут иметь указанные ниже значения:
+"Пользователь" – физическое лицо, заключившее соглашение с TL Shop;
+"Соглашение" – настоящее пользовательское соглашение;
+"TL Shop" – компания, предоставляющая услуги по продаже продуктов с содержанием никотина и устройств для их использования через бота авто-продаж в телеграм;
+"Стороны" – TL Shop и Пользователь.
+                
+1.2. Остальные термины и определения, встречающиеся в тексте соглашения, толкуются сторонами обычными правилами толкования соответствующих терминов.
+                
+2. Заключение соглашения:
+                
+2.1. Совершая покупку в интернет-магазине TL Shop, Пользователь автоматически принимает условия настоящего Соглашения и обязуется их соблюдать.
+                
+3. Условия использования магазина:
+                
+3.1. Приобретенная в TL shop Пользователем продукция обмену и возврату не подлежат, за исключением случаев заводского брака, подтвержденного экспертизой. После совершения покупки Пользователь становится владельцем товара.
+                
+3.2. TL Shop не несет ответственности за последствия неправильного использования продукции приобретённой в TL shop Пользователем.
+                
+3.3. TL Shop не несет ответственности за утерю данных, взлом аккаунта или другие неправомерные действия третьих лиц.
+                
+3.4. Служба поддержки TL Shop осуществляет общение с Пользователями исключительно через телеграм аккаунт менеджера(@managertlshop). TL Shop не несет ответственности за общение с Пользователями через другие каналы связи.
+                
+4. Обязанности Пользователя:
+                
+4.1. Пользователь обязуется предоставлять достоверную информацию при оформлении заказа.
+4.2. Пользователь обязуется использовать приобретенные продукты в соответствии с инструкцией по эксплуатации.
+4.3. Пользователю запрещается:
+                
+4.3.1. Оскорблять сотрудников TL Shop, при общении с таковыми и на официальных ресурсах TL Shop.
+4.3.2. Пытаться взломать бота авто-продаж или иным образом нарушать его работу.
+4.3.3. Предоставлять доступ к своей учётной записи бота авто-продаж третьим лицам.
+4.3.4. Перепродавать продукцию, приобретенную в TL Shop, без предварительного согласования с TL Shop.
+4.3.5. Распространять ложную информацию о TL Shop и его продукции.
+                
+4.4. Нарушение Пользователем любого из пунктов 4.3 может привести к блокировке Пользователя на всех ресурсах TL Shop.
+                
+5. Персональные данные:
+                
+5.1. Оформляя заказ, Пользователь дает согласие на обработку своих персональных данных команде TL Shop.
+5.2. TL Shop может использовать персональные данные Пользователя для рассылки рекламных материалов и уведомлений. Пользователь имеет право отказаться от получения таких материалов в любой момент.
+                
+6. Ограничение ответственности:
+                
+6.1. TL Shop не несет ответственности за убытки Пользователя, возникшие в результате:
+                
+6.1.1. Неправомерных действий третьих лиц.
+6.1.2. Неправильного использования продукции, приобретенной в TL Shop.
+6.1.3. Невозможности использования бота авто-продаж по техническим причинам.
+                
+6.2. TL Shop не несёт ответственности за совместимость продукции, приобретенной в TL Shop, с устройствами Пользователя.
+                
+7. Авторское право:
+                
+7.1. Все материалы, размещенные на на ресурсах TL Shop, являются интеллектуальной собственностью TL Shop и защищены законом об авторском праве.
+                
+8. Изменение условий соглашения:
+                
+8.1. TL Shop вправе в одностороннем порядке изменять условия настоящего Соглашения. Изменения вступают в силу с момента их публикации на ресурсах TL Shop.
+                
+9. Контактная информация:
+<a href="https://t.me/tl_chat51">Чат с отзывами</a>          
+<a href="https://t.me/tlshopviewss">Новости проекта</a>
+<a href="https://t.me/managertlshop">Менеджер</a></pre>
+            </section>
+        </div>
+        <div class="admin hide" id="adminPage">
+            <section class="admin_path">
+                <p class="admin_name">Админка</p>
+            </section>
+        </div>
+    </main>
+
+    <footer>
+        <nav class="main_page_but active" id="mainPageBut">
+            <svg width="23" height="24" viewBox="0 0 23 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path
+                    d="M1.5 8.7L11.5 1L21.5 8.7V20.8C21.5 21.3835 21.2659 21.9431 20.8491 22.3556C20.4324 22.7682 19.8671 23 19.2778 23H3.72222C3.13285 23 2.56762 22.7682 2.15087 22.3556C1.73413 21.9431 1.5 21.3835 1.5 20.8V8.7Z"
+                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                <path d="M8 23V12H14V23" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+
+            <p>Каталог</p>
+        </nav>
+        <nav class="basket_but" id="basketBut">
+            <svg width="25" height="24" viewBox="0 0 25 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path
+                    d="M9.5 22.5C10.0523 22.5 10.5 22.0523 10.5 21.5C10.5 20.9477 10.0523 20.5 9.5 20.5C8.94772 20.5 8.5 20.9477 8.5 21.5C8.5 22.0523 8.94772 22.5 9.5 22.5Z"
+                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                <path
+                    d="M19.5 22.5C20.0523 22.5 20.5 22.0523 20.5 21.5C20.5 20.9477 20.0523 20.5 19.5 20.5C18.9477 20.5 18.5 20.9477 18.5 21.5C18.5 22.0523 18.9477 22.5 19.5 22.5Z"
+                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                <path
+                    d="M1.5 1.5H5.5L8.18 15.7823C8.27144 16.2734 8.52191 16.7145 8.88755 17.0285C9.25318 17.3424 9.7107 17.5092 10.18 17.4996H19.9C20.3693 17.5092 20.8268 17.3424 21.1925 17.0285C21.5581 16.7145 21.8086 16.2734 21.9 15.7823L23.5 6.8332H6.5"
+                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+            <div class="basket_count" id="basketCount">
+            </div>
+            <p>Корзина</p>
+        </nav>
+        <nav class="profile_but" id="profileBut">
+            <svg width="22" height="25" viewBox="0 0 22 25" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path
+                    d="M21 23.5V21.1667C21 19.929 20.4732 18.742 19.5355 17.8668C18.5979 16.9917 17.3261 16.5 16 16.5H6C4.67392 16.5 3.40215 16.9917 2.46447 17.8668C1.52678 18.742 1 19.929 1 21.1667V23.5"
+                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                <path
+                    d="M10.5 11.5C13.2614 11.5 15.5 9.26142 15.5 6.5C15.5 3.73858 13.2614 1.5 10.5 1.5C7.73858 1.5 5.5 3.73858 5.5 6.5C5.5 9.26142 7.73858 11.5 10.5 11.5Z"
+                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+            <p>Профиль</p>
+        </nav>
+        <nav class="admin_but hide" id="adminBut">
+            <svg width="22" height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path
+                    d="M7.40782 1.64141C6.84579 1.72391 6.31298 2.02641 5.99157 2.44578C5.70798 2.81703 5.56704 3.22266 5.5636 3.66953C5.56189 4.24359 5.75439 4.71281 6.16001 5.11328C6.3611 5.31266 6.52439 5.42953 6.78907 5.56188C6.90079 5.61859 6.97298 5.665 6.96954 5.67703C6.96439 5.68906 6.78735 6.56047 6.57423 7.61406C6.3611 8.66766 6.18235 9.5425 6.17376 9.55797C6.16517 9.58031 5.96579 9.38438 5.29376 8.69344C4.81595 8.20359 4.34673 7.71719 4.25048 7.61406L4.07345 7.42844L4.18345 7.26172C4.38282 6.96609 4.44642 6.73406 4.42923 6.36453C4.40689 5.885 4.24189 5.50344 3.90501 5.15281C3.53204 4.76609 3.05767 4.56672 2.50939 4.56844C1.98689 4.57016 1.5297 4.75922 1.1722 5.12016C0.470947 5.83 0.441729 6.95922 1.10689 7.66047C1.39735 7.96813 1.75829 8.15203 2.22579 8.22938L2.41314 8.26203L3.62142 11.9728C4.28657 14.013 4.8297 15.6922 4.8297 15.7025C4.8297 15.7111 4.75923 15.7764 4.67501 15.8452C3.9411 16.4398 3.48048 17.1823 3.27595 18.1036C3.16423 18.6003 3.12814 19.0042 3.1161 19.8997L3.10579 20.625L11.2252 20.6216L19.3445 20.6164L19.3411 20.0234C19.3359 18.9888 19.2706 18.3855 19.1039 17.8028C18.877 17.0191 18.4233 16.3488 17.7547 15.8142C17.655 15.7352 17.5725 15.6647 17.5708 15.6595C17.5656 15.6492 20.0355 8.26375 20.0458 8.25859C20.0475 8.25688 20.1231 8.24656 20.2125 8.23453C20.637 8.18125 21.0238 7.98016 21.3245 7.65703C21.6374 7.32188 21.7972 6.91453 21.7972 6.44531C21.7972 5.46219 21.0564 4.66813 20.0492 4.57188C19.183 4.49109 18.3631 5.02219 18.0899 5.84375C18.0245 6.04313 17.9953 6.22188 17.9953 6.44531C17.9953 6.75297 18.0658 7.05203 18.1999 7.32016L18.2549 7.42844L18.0263 7.66391C17.9008 7.79281 17.423 8.28266 16.9641 8.75359C16.28 9.45828 16.1288 9.60609 16.1184 9.57859C16.1047 9.54594 15.3828 5.70453 15.3828 5.66672C15.3828 5.65641 15.4516 5.61516 15.5341 5.57734C15.7524 5.47766 16.005 5.30234 16.1803 5.12875C16.6788 4.63031 16.8884 3.93594 16.7406 3.26563C16.5688 2.475 15.9053 1.84594 15.0511 1.66547C14.8225 1.61563 14.3963 1.61219 14.1883 1.65688C13.4905 1.80813 12.9353 2.2275 12.6431 2.82563C12.3217 3.48047 12.3974 4.26594 12.8408 4.89844C12.9422 5.04453 13.1347 5.24219 13.2567 5.32641C13.3169 5.36766 13.3375 5.39 13.3289 5.41063C13.298 5.49313 11.1616 9.27781 11.153 9.2675C11.1461 9.26063 10.6597 8.38578 10.0719 7.32359L9.0011 5.39L9.05782 5.34703C9.4772 5.02734 9.76251 4.58047 9.86564 4.07344C9.9172 3.82078 9.9086 3.43922 9.84329 3.19172C9.7522 2.84969 9.57001 2.54031 9.29845 2.26875C8.98392 1.95422 8.58517 1.74281 8.14173 1.65859C7.94064 1.62078 7.60376 1.61219 7.40782 1.64141ZM7.93204 3.01641C8.15204 3.07484 8.32564 3.21578 8.42532 3.41516C8.4786 3.52516 8.48204 3.54234 8.48204 3.7125C8.48204 3.87922 8.4786 3.90156 8.42876 4.00469C8.29298 4.29 8.03345 4.45156 7.71548 4.45156C7.4611 4.45156 7.24282 4.32953 7.0847 4.09922C6.98501 3.95313 6.95064 3.69188 7.00564 3.50625C7.11735 3.12813 7.52642 2.91156 7.93204 3.01641ZM14.8242 3.01641C15.2883 3.13844 15.5031 3.61625 15.2883 4.04938C15.1542 4.32266 14.8999 4.46359 14.5664 4.44813C14.4255 4.44297 14.3928 4.43438 14.2777 4.37766C13.8274 4.15422 13.7139 3.56125 14.0577 3.2175C14.1453 3.12984 14.3086 3.03531 14.4134 3.00953C14.52 2.98547 14.7142 2.98891 14.8242 3.01641ZM2.68985 5.79906C2.88235 5.85063 3.02329 5.95719 3.11267 6.12219C3.16767 6.22531 3.1711 6.23906 3.1711 6.40234C3.1711 6.55875 3.16595 6.58281 3.12126 6.67391C2.95454 7.00219 2.54032 7.13109 2.21204 6.9575C2.08829 6.89047 2.00407 6.79938 1.93704 6.655C1.89235 6.55703 1.88376 6.52094 1.88376 6.40234C1.88376 6.22359 1.94048 6.08953 2.06939 5.96578C2.24985 5.79563 2.4647 5.73891 2.68985 5.79906ZM20.1541 5.84203C20.295 5.90734 20.4394 6.05 20.4995 6.18234C20.6078 6.41953 20.5253 6.71172 20.2967 6.89219C19.9358 7.1775 19.3978 7.01594 19.2724 6.58453C19.2328 6.44359 19.2483 6.25453 19.3102 6.13938C19.4838 5.81969 19.8378 5.69422 20.1541 5.84203ZM9.60954 9.44969C10.4397 10.9089 11.1289 12.1189 11.1409 12.1378C11.1616 12.1688 11.2991 11.9316 12.693 9.48063C13.8102 7.51609 14.2313 6.78906 14.2536 6.78906C14.2691 6.78906 14.2828 6.79422 14.2845 6.80109C14.2897 6.89734 15.2419 12.2633 15.2522 12.2598C15.2591 12.2598 15.8847 11.6652 16.6409 10.9398C17.8767 9.75391 18.0177 9.62328 18.0417 9.64734C18.0658 9.67141 17.9678 9.95156 17.0706 12.418C16.5206 13.9288 16.0686 15.1663 16.0669 15.168C16.0634 15.1714 15.9964 15.1611 15.9156 15.1491C15.1302 15.0202 13.8308 14.8741 12.8734 14.807C11.0756 14.6816 9.18673 14.7194 7.7086 14.9119C7.3786 14.9548 6.77532 15.0511 6.56048 15.0958C6.45564 15.1181 6.4436 15.1181 6.42985 15.0923C6.42298 15.0769 5.93485 13.8548 5.34532 12.3784C4.30032 9.75391 4.27626 9.69031 4.3072 9.65938C4.33985 9.62844 4.37595 9.66453 5.70626 10.9759C6.92657 12.1808 7.07267 12.32 7.0847 12.2856C7.09157 12.2633 7.30642 11.0275 7.56251 9.53906C7.8186 8.05063 8.03173 6.82172 8.03689 6.80969C8.04032 6.79594 8.05751 6.78906 8.07298 6.7925C8.09189 6.79594 8.64704 7.75672 9.60954 9.44969ZM13.0109 16.5877C13.8858 16.6392 14.3808 16.732 15.4344 17.0448C16.4897 17.3577 17.0569 17.7272 17.2717 18.2428C17.3233 18.3666 17.3766 18.6141 17.3766 18.7275V18.7859L11.2286 18.7825L5.08064 18.7773L5.08579 18.6742C5.0961 18.4319 5.18032 18.1638 5.31439 17.9575C5.40892 17.8114 5.63235 17.5948 5.8111 17.4745C6.35251 17.1153 7.35626 16.8231 8.49923 16.6908C9.22454 16.6066 9.64735 16.5842 10.7938 16.5688C11.8594 16.555 12.5606 16.5602 13.0109 16.5877Z" />
+            </svg>
+            <p>Админка</p>
+        </nav>
+    </footer>
+
+    <div class="date_selection_delivery hide" id="dateSelectionDelivery">
+        <div class="date_selection_container" id="dateSelectionContainerDelivery">
+            <p class="date_selection_title">Дата доставки</p>
+            <p class="date_selection_discription">Выберите, когда вам удобно получить заказ</p>
+            <ul class="date_selection_list" id="dateSelectionListDelivery">
+            </ul>
+            <div class="choice_close" id="choiceDateDelivery">Выбрать</div>
+            <div class="close_date_selection" id="closeDateSelectionDelivery">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" width="24" height="24" viewBox="0 0 24 24"
+                    class="UiKitUiKitIcon_m UiKitImgIcon UiKitUiKitIcon_root UiKitImgIcon" role="img"
+                    aria-hidden="true">
+                    <path fill="#000000" fill-rule="evenodd"
+                        d="M18.646 6.754a.5.5 0 0 0 0-.708l-.692-.692a.5.5 0 0 0-.708 0L12 10.6 6.754 5.354a.5.5 0 0 0-.708 0l-.692.692a.5.5 0 0 0 0 .708L10.6 12l-5.246 5.246a.5.5 0 0 0 0 .708l.692.692a.5.5 0 0 0 .708 0L12 13.4l5.246 5.246a.5.5 0 0 0 .708 0l.692-.692a.5.5 0 0 0 0-.708L13.4 12z"
+                        clip-rule="evenodd"></path>
+                </svg>
+            </div>
+        </div>
+    </div>
+    <div class="date_selection_pickup hide" id="dateSelectionPickup">
+        <div class="date_selection_container" id="dateSelectionContainerPickup">
+            <p class="date_selection_title">Дата самовывоза</p>
+            <p class="date_selection_discription">Выберите, когда вам удобно забрать заказ</p>
+            <ul class="date_selection_list" id="dateSelectionListPickup">
+            </ul>
+            <div class="choice_close" id="choiceDatePickup">Выбрать</div>
+            <div class="close_date_selection" id="closeDateSelectionPickup">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" width="24" height="24" viewBox="0 0 24 24"
+                    class="UiKitUiKitIcon_m UiKitImgIcon UiKitUiKitIcon_root UiKitImgIcon" role="img"
+                    aria-hidden="true">
+                    <path fill="#000000" fill-rule="evenodd"
+                        d="M18.646 6.754a.5.5 0 0 0 0-.708l-.692-.692a.5.5 0 0 0-.708 0L12 10.6 6.754 5.354a.5.5 0 0 0-.708 0l-.692.692a.5.5 0 0 0 0 .708L10.6 12l-5.246 5.246a.5.5 0 0 0 0 .708l.692.692a.5.5 0 0 0 .708 0L12 13.4l5.246 5.246a.5.5 0 0 0 .708 0l.692-.692a.5.5 0 0 0 0-.708L13.4 12z"
+                        clip-rule="evenodd"></path>
+                </svg>
+            </div>
+        </div>
+    </div>
+
+    <div class="loading" id="loading">
+        <div class="spinner"></div>
+    </div>
+
+    <script src="main.js" defer></script>
+    <script src="maps.js" defer></script>
+    <script src="catalogSearch.js" defer></script>
+    <script src="logistics.js" defer></script>
+    <script src="user.js" defer></script>
+    <script src="categories.js" defer></script>
+    <script src="basket.js" defer></script>
+    <script src="admin.js" defer></script>
+    <script src="order.js" defer></script>
+    <script src="profile.js" defer></script>
+
+</body>
+
+</html>
