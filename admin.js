@@ -32,189 +32,25 @@ function adminConsole() { // Отправить в консоль список �
     console.log(product_list_price);
 };
 
-// function adm_add_category(pickupPointData) { //Управление добавлением новой категории/товара
+async function admNotifications(notificationData) {
 
-//     let catalog = document.getElementsByClassName('catalog')[0];
-//     let add_category_plus = document.getElementsByClassName('add_category_plus')[0];
-//     let cart = document.getElementsByClassName('cart ')[0];
-//     let add_cart = document.getElementsByClassName('add_cart')[0];
-//     let cart_path = document.getElementsByClassName('cart_adm_path')[0];
-//     let cart_adm_img = document.getElementsByClassName('cart_adm_img')[0];
-//     let cart_img_none = document.getElementsByClassName('cart_img_none')[0];
-//     const fileInput = document.getElementById('fileInput');
-//     let type_category = document.getElementsByClassName('type_category')[0];
-//     let type_product = document.getElementsByClassName('type_product')[0];
-//     let cart_name_input = document.getElementsByClassName('cart_name_input')[0];
-//     let cart_discript_input = document.getElementsByClassName('cart_discript_input')[0];
-//     let cart_count_input = document.getElementsByClassName('cart_count_input')[0];
-//     let cart_price_input = document.getElementsByClassName('cart_price_input')[0];
-//     let save_category = document.getElementsByClassName('save_category')[0];
-//     let category_list = document.getElementsByClassName('category_list')[0];
+    const postData = {
+        notificationData: notificationData
+    };
+    let headers = new Headers();
+    headers.append('Content-Type', 'application/json');
+    try {
 
+        await fetch('https://tl-shop.click/api/V2/get-cart', {
+            method: 'POST',
+            headers: headers,
+            body: JSON.stringify(postData),
+        })
 
-//     function add_cart_cheker() { //Чекер валидности данных
-//         if (type_category.classList.contains('choiced')) {
-//             if (cart_name_input.value != 0) {
-//                 save_category.classList.remove('disactive_but');
-//                 return true;
-//             } else {
-//                 save_category.classList.add('disactive_but');
-//                 return false;
-//             };
-//         } else if (type_product.classList.contains('choiced')) {
-//             if (cart_name_input.value != 0 && cart_count_input.value != 0 && cart_price_input.value != 0) {
-//                 save_category.classList.remove('disactive_but');
-//                 return true;
-//             } else {
-//                 save_category.classList.add('disactive_but');
-//                 return false;
-//             };
-//         };
-//     };
-
-//     add_category_plus.addEventListener('click', () => {
-//         catalog.classList.add('hide')
-//         cart.classList.remove('hide')
-//         add_cart.classList.remove('hide')
-//         add_cart_cheker();
-//         if (category_list.id == 0) {
-//             type_product.classList.add('hide');
-//         };
-//     });
-//     cart_path.addEventListener('click', () => {
-//         catalog.classList.remove('hide')
-//         cart.classList.add('hide')
-//         add_cart.classList.add('hide')
-//     });
-//     let img_base64;
-//     fileInput.addEventListener('change', function (e) {
-//         e.preventDefault();
-//         const file = e.target.files[0];
-//         if (file) {
-//             const reader = new FileReader();
-//             reader.onload = function (event) {
-//                 img_base64 = event.target.result;
-//                 cart_adm_img.src = event.target.result;
-//             };
-//             cart_adm_img.classList.remove('hide');
-//             cart_img_none.classList.add('hide');
-//             reader.readAsDataURL(file);
-//         };
-//     });
-//     type_category.addEventListener('click', () => {
-//         type_category.classList.add('choiced');
-//         type_product.classList.remove('choiced');
-//         cart_count_input.classList.add('hide');
-//         cart_price_input.classList.add('hide');
-//         add_cart_cheker();
-//     });
-//     type_product.addEventListener('click', () => {
-//         type_product.classList.add('choiced');
-//         type_category.classList.remove('choiced');
-//         cart_count_input.classList.remove('hide');
-//         cart_price_input.classList.remove('hide');
-//         add_cart_cheker();
-//     });
-//     cart_name_input.addEventListener('input', () => {
-//         add_cart_cheker();
-//     });
-//     cart_count_input.addEventListener('input', () => {
-//         add_cart_cheker();
-//     });
-//     cart_price_input.addEventListener('input', () => {
-//         add_cart_cheker();
-//     });
-//     save_category.addEventListener('click', (event) => {
-//         console.log(event);
-//         event.preventDefault();
-//         if (add_cart_cheker()) {
-//             let loading_cart = document.getElementsByClassName('loading_cart')[0];
-//             loading_cart.classList.remove('hide');
-//             if (type_category.classList.contains('choiced')) {
-//                 create_category(pickupPointData, 0, 0, cart_name_input.value, category_list.id, cart_discript_input.value, img_base64);
-//             } else if (type_product.classList.contains('choiced')) {
-//                 create_category(pickupPointData, 0, 7, cart_name_input.value, category_list.id, cart_discript_input.value, img_base64, cart_count_input.value, cart_price_input.value);
-//             };
-//         };
-//     });
-// };
-
-// function adm_change_category(pickupPointData) {
-//     let cart_info = document.getElementsByClassName('cart_info_change');
-//     for (let i = 0; i < cart_info.length; i++) {
-//         let cart_adm_img = document.getElementsByClassName('cart_img_change')[i];
-//         let cart_img_none = document.getElementsByClassName('cart_img_none_change')[i];
-//         let fileInput = document.getElementById('fileInput_' + cart_info[i].id.split('_')[1]);
-//         let cart_name_input = document.getElementsByClassName('cart_name_input_change')[i];
-//         let cart_discript_input = document.getElementsByClassName('cart_discript_input_change')[i];
-//         let cart_count_input = document.getElementsByClassName('cart_count_input_change')[i];
-//         let cart_price_input = document.getElementsByClassName('cart_price_input_change')[i];
-//         let save_category = document.getElementsByClassName('save_category_change')[i];
-//         let category_list = document.getElementsByClassName('category_list')[0];
-
-//         function add_cart_cheker() {
-//             if (cart_info[i].id.split('_')[0] == 'category') {
-//                 if (cart_name_input.value != null) {
-//                     save_category.classList.remove('disactive_but');
-//                     return true;
-//                 } else {
-//                     save_category.classList.add('disactive_but');
-//                     return false;
-//                 };
-//             } else if (cart_info[i].id.split('_')[0] == 'product') {
-//                 if (cart_name_input.value != null && cart_count_input.value != null && cart_price_input.value != null) {
-//                     save_category.classList.remove('disactive_but');
-//                     return true;
-//                 } else {
-//                     save_category.classList.add('disactive_but');
-//                     return false;
-//                 };
-//             };
-//         };
-//         let img_base64;
-//         fileInput.addEventListener('change', function (e) {
-//             e.preventDefault();
-//             const file = e.target.files[0];
-//             if (file) {
-//                 const reader = new FileReader();
-//                 reader.onload = function (event) {
-//                     img_base64 = event.target.result;
-//                     cart_adm_img.src = event.target.result;
-//                 };
-//                 cart_adm_img.classList.remove('hide');
-//                 cart_img_none.classList.add('hide');
-//                 reader.readAsDataURL(file);
-//             };
-//             add_cart_cheker();
-//         });
-//         cart_name_input.addEventListener('input', () => {
-//             add_cart_cheker();
-//         });
-//         cart_discript_input.addEventListener('input', () => {
-//             add_cart_cheker();
-//         });
-//         cart_count_input.addEventListener('input', () => {
-//             add_cart_cheker();
-//         });
-//         cart_price_input.addEventListener('input', () => {
-//             add_cart_cheker();
-//         });
-
-//         save_category.addEventListener('click', (event) => {
-//             console.log(event);
-//             event.preventDefault();
-//             if (add_cart_cheker()) {
-//                 let loading_cart_change = document.getElementsByClassName('loading_cart_change')[i];
-//                 loading_cart_change.classList.remove('hide');
-//                 if (cart_info[i].id.split('_')[0] == 'category') {
-//                     create_category(pickupPointData, cart_info[i].id.split('_')[1], 0, cart_name_input.value, category_list.id, cart_discript_input.value, img_base64);
-//                 } else if (cart_info[i].id.split('_')[0] == 'product') {
-//                     create_category(pickupPointData, cart_info[i].id.split('_')[1], 7, cart_name_input.value, category_list.id, cart_discript_input.value, img_base64, cart_count_input.value, cart_price_input.value);
-//                 };
-//             };
-//         });
-//     };
-// };
+    } catch (error) {
+        console.error('Error:', error);
+    }
+}
 
 function admAddCategory(pickupPointData) {
     addCategoryPlus.addEventListener('click', () => {
