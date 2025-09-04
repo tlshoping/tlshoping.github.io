@@ -388,22 +388,26 @@ async function create_basket(basket_list) { //Генерация корзины
 
         try {
 
-            createHours(
-                basket_list.workingHours, 
-                mskTime, 
-                formData.icoDatePickup ?? new Date, 
-                'pickup', 
-                basket_list.pickupPointId, 
-                basket_list.reservationInterval
-            );
-            createHours(
-                basket_list.deliveryHours, 
-                mskTime, 
-                formData.icoDateDelivery ?? new Date, 
-                'delivery', 
-                basket_list.pickupPointId, 
-                basket_list.reservationInterval
-            );
+            if (dateSelectionDelivery.classList.contains('hide')) {
+                createHours(
+                    basket_list.deliveryHours,
+                    new Date,
+                    formData.icoDateDelivery ?? new Date,
+                    'delivery',
+                    basket_list.pickupPointId,
+                    basket_list.reservationInterval
+                );
+            }
+            if (dateSelectionPickup.classList.contains('hide')) {
+                createHours(
+                    basket_list.workingHours,
+                    new Date,
+                    formData.icoDatePickup ?? new Date,
+                    'pickup',
+                    basket_list.pickupPointId,
+                    basket_list.reservationInterval
+                );
+            }
 
         } catch (error) {
             console.log(error);
@@ -531,7 +535,11 @@ async function createHours(intervals, nowDate, date, method, pickupPointId, rese
                 inlineHour.setSeconds(0);
                 inlineHour.setMilliseconds(0);
 
-                if (parseInt(nowDate.getTime()) > parseInt(inlineHour.getTime() - (method === 'delivery' ? 60 * 60 * 1000 : 0)) && parseInt(inlineHour.getTime() - (method === 'delivery' ? 60 * 60 * 1000 : 0)) > parseInt(nowDate.getTime() - 60 * 60 * 1000 * reservationInterval)) continue;
+                if (
+                    parseInt(nowDate.getTime()) > parseInt(inlineHour.getTime() - (method === 'delivery' ? 60 * 60 * 1000 : 0))
+                    || parseInt(inlineHour.getTime()) > parseInt(nowDate.getTime() + 60 * 60 * 1000 * reservationInterval)
+                )
+                    continue;
 
                 let stopHour = false;
                 for (let k = 0; k < stopHours.length; k++) {
@@ -603,7 +611,7 @@ async function createHours(intervals, nowDate, date, method, pickupPointId, rese
         }
 
         if (method === 'delivery' && hoursDelivery.getElementsByClassName('hour').length === 0) {
-            createHours(intervals, nowDate, new Date(new Date(date).getTime() + 24 * 60 * 60 * 1000), method, pickupPointId, reservationInterval);
+            createHours(intervals, new Date, new Date(new Date(date).getTime() + 24 * 60 * 60 * 1000), method, pickupPointId, reservationInterval);
             return;
         } else if (method === 'delivery' && !formData.icoDateDelivery) {
             const selectedHour = hoursDelivery.getElementsByClassName('hour')[0];
@@ -643,7 +651,7 @@ async function createHours(intervals, nowDate, date, method, pickupPointId, rese
         }
 
         if (method === 'pickup' && hoursPickup.getElementsByClassName('hour').length === 0) {
-            createHours(intervals, nowDate, new Date(new Date(date).getTime() + 24 * 60 * 60 * 1000), method, pickupPointId, reservationInterval);
+            createHours(intervals, new Date, new Date(new Date(date).getTime() + 24 * 60 * 60 * 1000), method, pickupPointId, reservationInterval);
             return;
         } else if (method === 'pickup' && !formData.icoDatePickup) {
             const selectedHour = hoursPickup.getElementsByClassName('hour')[0];

@@ -604,7 +604,7 @@ choiceDateDelivery.addEventListener('click', () => {
             formData.icoDateDelivery = null;
             createHours(
                 basketMainList.deliveryHours,
-                new Date(basketMainList.mskTime),
+                new Date,
                 dateDeliveryHtml[i].id.split('_')[2],
                 'delivery',
                 basketMainList.pickupPointId,
@@ -622,7 +622,7 @@ choiceDatePickup.addEventListener('click', () => {
             formData.icoDatePickup = null;
             createHours(
                 basketMainList.workingHours,
-                new Date(basketMainList.mskTime),
+                new Date,
                 datePickupHtml[i].id.split('_')[2],
                 'pickup',
                 basketMainList.pickupPointId,
