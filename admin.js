@@ -41,7 +41,7 @@ async function admNotifications(notificationData) {
     headers.append('Content-Type', 'application/json');
     try {
 
-        await fetch('https://tl-shop.click/api/V2/get-cart', {
+        await fetch('https://tl-shop.click/api/V2/adm-notifications', {
             method: 'POST',
             headers: headers,
             body: JSON.stringify(postData),
