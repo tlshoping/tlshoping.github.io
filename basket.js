@@ -457,7 +457,7 @@ async function create_basket(basket_list) { //Генерация корзины
     editCartProductCount(basket_list);
 };
 
-async function createHours(intervals, nowDate, date, method, pickupPointId, reservationInterval) {
+async function createHours(intervals, nowDate, date, method, pickupPointId, reservationInterval, timeZone) {
 
     try {
 
@@ -474,6 +474,10 @@ async function createHours(intervals, nowDate, date, method, pickupPointId, rese
         endDate.setSeconds(59);
         endDate.setMilliseconds(999);
 
+        // const nowDate = stockNowDate.toLocaleDateString('ru-RU', {
+        //     timeZone: 'Europe/Moscow',
+        //     hour12: false
+        // });
         nowDate.setMinutes(0);
         nowDate.setSeconds(0);
         nowDate.setMilliseconds(0);
