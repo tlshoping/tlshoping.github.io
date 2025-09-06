@@ -87,7 +87,7 @@ const polygon = [
 
 let pickupPointsData; // Глобальная переменна точек
 let pickupPointsDataSort; // Глобальная переменна отстортированных точек
-let url;
+let url = 'http://tl-shop.icu/'; // Глобальная переменна url
 let user_key;
 let user_data; // Глобальная переменная данных пользователя
 let orders_count;
@@ -131,7 +131,6 @@ document.addEventListener('DOMContentLoaded', function () {
         bot_id: 0,
     };
     const urlParams = new URLSearchParams(window.location.search);
-    url = window.location.origin;
     secretKey = urlParams.get('secret_key'); // Получить значение параметра "param1"
     let myHeaders = new Headers();
     myHeaders.append('Content-Type', 'application/json');

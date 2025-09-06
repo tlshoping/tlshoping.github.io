@@ -23,7 +23,7 @@ function init() {
             },
             {
                 iconLayout: 'default#image',
-                iconImageHref: 'https://tlshopbot.github.io/shop/' + pickupPointsData[i].icon,
+                iconImageHref: url + pickupPointsData[i].icon,
                 iconImageSize: [40, 45],
                 iconImageOffset: [-19, -44]
             }
@@ -324,7 +324,7 @@ function pickupPointsManage(pickupPointsList, type) { // Генерация то
             <p class="delivery_price ${deliveryPriceView}">Доставка ${deliveryPrice}₽</p>
             <div class="pickup_container" style="background-color: rgb(237, 14, 0)">
                 <div class="icon_container">
-                    <img src="${url + '/' + pickupPointsList[i].logo}" class="pickup_icon"
+                    <img src="${url + pickupPointsList[i].logo}" class="pickup_icon"
                         loading="lazy" fetchpriority="auto" aria-hidden="true" draggable="false"
                         style="object-fit: contain; object-position: 50% 50%;"></img>
                 </div>
