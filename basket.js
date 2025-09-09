@@ -106,15 +106,13 @@ deleteAllProducts.addEventListener('click', () => {
     delete_all_product();
 });
 
-async function getAllStopHours(pickupPointId, method, startDate, endDate) {
+async function getAllStopHours(pickupPointId, method) {
     try {
 
         const postData = {
             bot_id: 0,
             pickupPointId: pickupPointId,
-            method: method,
-            startDate: startDate,
-            endDate: endDate
+            method: method
         };
         let myHeaders = new Headers();
         myHeaders.append('Content-Type', 'application/json');
@@ -370,12 +368,12 @@ async function create_basket(basket_list) { //Генерация корзины
         }
 
         createInputs(
-            basket_list.addressApartment ?? formData.apartment ?? null,
-            basket_list.addressEntrance ?? formData.entrance ?? null,
-            basket_list.addressFloor ?? formData.floor ?? null,
-            basket_list.addressDoorphone ?? formData.doorphone ?? null,
-            basket_list.phoneNumber ?? formData.phone ?? null,
-            basket_list.inputTelegram ?? formData.telegram ?? user_data.data.nickname ?? null,
+            formData.apartment ?? basket_list.addressApartment ?? null,
+            formData.entrance ?? basket_list.addressEntrance ?? null,
+            formData.floor ?? basket_list.addressFloor ?? null,
+            formData.doorphone ?? basket_list.addressDoorphone ?? null,
+            formData.phone ?? basket_list.phoneNumber ?? null,
+            formData.telegram ?? basket_list.inputTelegram ?? user_data.data.nickname ?? null,
             formData.comment ?? null,
             formData.method ?? null,
             formData.payment ?? null,
@@ -384,12 +382,10 @@ async function create_basket(basket_list) { //Генерация корзины
             formData.dayDelivery ?? null
         );
 
-        const mskTime = new Date(basket_list.mskTime);
-
         try {
 
             if (dateSelectionDelivery.classList.contains('hide')) {
-                createHours(
+                await createHours(
                     basket_list.deliveryHours,
                     new Date,
                     formData.icoDateDelivery ?? new Date,
@@ -399,7 +395,7 @@ async function create_basket(basket_list) { //Генерация корзины
                 );
             }
             if (dateSelectionPickup.classList.contains('hide')) {
-                createHours(
+                await createHours(
                     basket_list.workingHours,
                     new Date,
                     formData.icoDatePickup ?? new Date,
@@ -450,6 +446,8 @@ async function create_basket(basket_list) { //Генерация корзины
 
         basket_empty.classList.remove('hide');
         basket_full.classList.add('hide');
+
+        deliveryNotificationContainer.classList.add('hide');
     };
     let result_text_sum = document.getElementsByClassName('result_text_sum')[0];
     result_text_sum.textContent = basket_list['sum'] + ' ₽';
@@ -462,22 +460,7 @@ async function createHours(intervals, nowDate, date, method, pickupPointId, rese
     try {
 
         const workingHours = intervals.split('|');
-        let startDate = new Date(date);
-        startDate.setHours(workingHours[0].split('-')[0].split(':')[0]);
-        startDate.setMinutes(0);
-        startDate.setSeconds(0);
-        startDate.setMilliseconds(0);
 
-        let endDate = new Date(date);
-        endDate.setHours(workingHours[workingHours.length - 1].split('-')[1].split(':')[0]);
-        endDate.setMinutes(59);
-        endDate.setSeconds(59);
-        endDate.setMilliseconds(999);
-
-        // const nowDate = stockNowDate.toLocaleDateString('ru-RU', {
-        //     timeZone: 'Europe/Moscow',
-        //     hour12: false
-        // });
         nowDate.setMinutes(0);
         nowDate.setSeconds(0);
         nowDate.setMilliseconds(0);
@@ -494,7 +477,7 @@ async function createHours(intervals, nowDate, date, method, pickupPointId, rese
         nowDateWithoutTime.setSeconds(0);
         nowDateWithoutTime.setMilliseconds(0);
 
-        const stopHours = await getAllStopHours(pickupPointId, method, startDate, endDate);
+        const stopHours = await getAllStopHours(pickupPointId, method);
 
         let hoursHtml;
         let daysHtml;
@@ -512,67 +495,7 @@ async function createHours(intervals, nowDate, date, method, pickupPointId, rese
             daysHtml[0].remove();
         }
 
-        const nowDiffDays = (dateWithoutTime.getTime() - nowDateWithoutTime.getTime()) / (1000 * 60 * 60 * 24);
-
-        let nowDayOfWeek;
-
-        if (nowDiffDays === 0) nowDayOfWeek = 'Сегодня';
-        else if (nowDiffDays === 1) nowDayOfWeek = 'Завтра';
-        else nowDayOfWeek = days[dateWithoutTime.getDay()];
-
-        if (method === 'delivery') {
-            dateFormDayTextDelivery.textContent = nowDayOfWeek.toLowerCase();
-        } else {
-            dateFormDayTextPickup.textContent = nowDiffDays >= 2 ? 'в ' + nowDayOfWeek.toLowerCase() : nowDayOfWeek.toLowerCase();
-        }
-
-        for (let i = 0; i < workingHours.length; i++) {
-
-            workingHours[i] = workingHours[i].split('-');
-            const hoursNum = parseInt(workingHours[i][1].split(':')[0]) - parseInt(workingHours[i][0].split(':')[0]);
-
-            for (let j = 0; j < hoursNum; j++) {
-
-                let inlineHour = new Date(date);
-                inlineHour.setHours(parseInt(workingHours[i][0].split(':')[0]) + j);
-                inlineHour.setMinutes(0);
-                inlineHour.setSeconds(0);
-                inlineHour.setMilliseconds(0);
-
-                if (
-                    parseInt(nowDate.getTime()) > parseInt(inlineHour.getTime() - (method === 'delivery' ? 60 * 60 * 1000 : 0))
-                    || parseInt(inlineHour.getTime()) > parseInt(nowDate.getTime() + 60 * 60 * 1000 * reservationInterval)
-                )
-                    continue;
-
-                let stopHour = false;
-                for (let k = 0; k < stopHours.length; k++) {
-
-                    if (stopHours[k].interval === inlineHour.toISOString()) {
-                        stopHour = true;
-                        break;
-                    }
-                }
-
-                if (stopHour) continue;
-
-                let hour = document.createElement('li');
-                if (method === 'delivery') {
-                    hoursDelivery.append(hour);
-                } else {
-                    hoursPickup.append(hour);
-                }
-
-                hour.outerHTML = `
-                            <li class="hour" id="hour_${method}_${inlineHour.toISOString()}">
-                                <p class="hour_date">${nowDayOfWeek}</p>
-                                <p class="hour_text">${(parseInt(workingHours[i][0].split(':')[0]) + j) + ':00-' + (parseInt(workingHours[i][0].split(':')[0]) + j + 1) + ':00'}</p>
-                            </li>
-                            `
-
-            }
-
-        }
+        let dateList = [];
 
         for (let i = 0; i <= Math.ceil(reservationInterval / 24); i++) {
 
@@ -584,6 +507,58 @@ async function createHours(intervals, nowDate, date, method, pickupPointId, rese
             else if (diffDays === 1) dayOfWeek = 'Завтра';
             else dayOfWeek = days[new Date(nowDateWithoutTime.getTime() + 24 * 60 * 60 * 1000 * i).getDay()];
 
+            dateList.push(
+                {
+                    date: new Date(nowDateWithoutTime.getTime() + 24 * 60 * 60 * 1000 * i).toISOString(),
+                    dayOfWeek: dayOfWeek,
+                    dayOfMonth: `${new Date(nowDateWithoutTime.getTime() + 24 * 60 * 60 * 1000 * i).getDate()} ${months[new Date(nowDateWithoutTime.getTime() + 24 * 60 * 60 * 1000 * i).getMonth()]}`,
+                    hours: []
+                }
+            );
+
+            for (let j = 0; j < workingHours.length; j++) {
+
+                const hoursNum = parseInt(workingHours[j].split('-')[1].split(':')[0]) - parseInt(workingHours[j].split('-')[0].split(':')[0]);
+
+                for (let k = 0; k < hoursNum; k++) {
+
+                    let inlineHour = new Date(nowDate.getTime() + 24 * 60 * 60 * 1000 * i);
+                    inlineHour.setHours(parseInt(workingHours[j].split('-')[0].split(':')[0]) + k);
+                    inlineHour.setMinutes(0);
+                    inlineHour.setSeconds(0);
+                    inlineHour.setMilliseconds(0);
+
+                    if (
+                        parseInt(nowDate.getTime()) > parseInt(inlineHour.getTime() - (method === 'delivery' ? 60 * 60 * 1000 : 0))
+                        || parseInt(inlineHour.getTime()) > parseInt(nowDate.getTime() + 60 * 60 * 1000 * reservationInterval)
+                    ) continue;
+
+                    let stopHour = false;
+                    for (let l = 0; l < stopHours.length; l++) {
+                        if (stopHours[l].interval === inlineHour.toISOString()) {
+                            stopHour = true;
+                            break;
+                        }
+                    }
+
+                    if (stopHour) continue;
+
+                    dateList[i].hours.push(inlineHour.toISOString());
+
+                }
+
+            }
+
+        }
+
+        console.log(method, dateList)
+
+        let dataFlag = true;
+
+        for (let i = 0; i < dateList.length; i++) {
+
+            if (dateList[i].hours.length === 0) continue;
+
             let dateSelectionItem = document.createElement('li');
             if (method === 'delivery') {
                 dateSelectionListDelivery.append(dateSelectionItem);
@@ -592,10 +567,10 @@ async function createHours(intervals, nowDate, date, method, pickupPointId, rese
             }
 
             dateSelectionItem.outerHTML = `
-                        <li class="date_selection_item" id="day_${method}_${new Date(nowDateWithoutTime.getTime() + 24 * 60 * 60 * 1000 * i).toISOString()}">
+                        <li class="date_selection_item" id="day_${method}_${dateList[i].date}">
                             <div class="date_selection_item_container">
-                                <p class="day_of_week">${dayOfWeek}</p>
-                                <p class="day_of_month">${new Date(nowDateWithoutTime.getTime() + 24 * 60 * 60 * 1000 * i).getDate()} ${months[new Date(nowDateWithoutTime.getTime() + 24 * 60 * 60 * 1000 * i).getMonth()]}.</p>
+                                <p class="day_of_week">${dateList[i].dayOfWeek}</p>
+                                <p class="day_of_month">${dateList[i].dayOfMonth}.</p>
                             </div>
                             <svg width="24" height="24" viewBox="0 0 30 30" fill="none" xmlns="http://www.w3.org/2000/svg">
                                 <g clip-path="url(#clip0_569_551)">
@@ -612,87 +587,144 @@ async function createHours(intervals, nowDate, date, method, pickupPointId, rese
                             </svg>
                         </li>
                         `
+
+            if ((new Date(dateList[i].date).getTime() >= new Date(dateWithoutTime.toISOString()).getTime()) && dataFlag) {
+
+                if (method === 'delivery') {
+                    dateFormDayTextDelivery.textContent = dateList[i].dayOfWeek.toLowerCase();
+                } else {
+                    dateFormDayTextPickup.textContent = i >= 2 ? 'в ' + dateList[i].dayOfWeek.toLowerCase() : dateList[i].dayOfWeek.toLowerCase();
+                }
+
+                document.getElementById(`day_${method}_${dateList[i].date}`).getElementsByClassName('date_selection_item_circle')[0].classList.add('selected_circle');
+
+                for (let j = 0; j < dateList[i].hours.length; j++) {
+
+                    let activeFlag = '';
+
+                    let hour = document.createElement('li');
+                    if (method === 'delivery') {
+                        hoursDelivery.append(hour);
+                        if (!formData.icoDateDelivery) {
+                            formData.icoDateDelivery = dateList[i].hours[j];
+                            activeFlag = 'hour_active';
+                            dataFlag = false;
+                        } else if (dateList[i].hours[j] === formData.icoDateDelivery) {
+                            activeFlag = 'hour_active';
+                            dataFlag = false;
+                        } else if (new Date(dateList[i].hours[j]).getTime() > new Date(formData.icoDateDelivery).getTime() && dataFlag) {
+                            formData.icoDateDelivery = dateList[i].hours[j];
+                            activeFlag = 'hour_active';
+                            dataFlag = false;
+                        }
+                    } else {
+                        hoursPickup.append(hour);
+                        if (!formData.icoDatePickup) {
+                            formData.icoDatePickup = dateList[i].hours[j];
+                            activeFlag = 'hour_active';
+                            dataFlag = false;
+                        } else if (dateList[i].hours[j] === formData.icoDatePickup) {
+                            activeFlag = 'hour_active';
+                            dataFlag = false;
+                        } else if (new Date(dateList[i].hours[j]).getTime() > new Date(formData.icoDatePickup).getTime() && dataFlag) {
+                            formData.icoDatePickup = dateList[i].hours[j];
+                            activeFlag = 'hour_active';
+                            dataFlag = false;
+                        }
+                    }
+
+                    hour.outerHTML = `
+                            <li class="hour ${activeFlag}" id="hour_${method}_${dateList[i].hours[j]}">
+                                <p class="hour_date">${dateList[i].dayOfWeek}</p>
+                                <p class="hour_text">${new Date(dateList[i].hours[j]).getHours() + ':00-' + (parseInt(new Date(dateList[i].hours[j]).getHours()) + 1) + ':00'}</p>
+                            </li>
+                            `
+
+                }
+
+            }
+
         }
 
-        if (method === 'delivery' && hoursDelivery.getElementsByClassName('hour').length === 0) {
-            createHours(intervals, new Date, new Date(new Date(date).getTime() + 24 * 60 * 60 * 1000), method, pickupPointId, reservationInterval);
-            return;
-        } else if (method === 'delivery' && !formData.icoDateDelivery) {
-            const selectedHour = hoursDelivery.getElementsByClassName('hour')[0];
-            const selectedDay = document.getElementById(`day_${method}_${dateWithoutTime.toISOString()}`);
-            console.log(selectedHour);
-            formData.icoDateDelivery = selectedHour.id.split('_')[2];
-            selectedHour.classList.add('hour_active');
-            selectedDay.getElementsByClassName('date_selection_item_circle')[0].classList.add('selected_circle');
-        } else if (method === 'delivery' && formData.icoDateDelivery) {
+        // if (method === 'delivery' && hoursDelivery.getElementsByClassName('hour').length === 0) {
+        //     createHours(intervals, new Date, new Date(new Date(date).getTime() + 24 * 60 * 60 * 1000), method, pickupPointId, reservationInterval);
+        //     return;
+        // } else if (method === 'delivery' && !formData.icoDateDelivery) {
+        //     const selectedHour = hoursDelivery.getElementsByClassName('hour')[0];
+        //     const selectedDay = document.getElementById(`day_${method}_${dateWithoutTime.toISOString()}`);
+        //     console.log(selectedHour);
+        //     formData.icoDateDelivery = selectedHour.id.split('_')[2];
+        //     selectedHour.classList.add('hour_active');
+        //     selectedDay.getElementsByClassName('date_selection_item_circle')[0].classList.add('selected_circle');
+        // } else if (method === 'delivery' && formData.icoDateDelivery) {
 
-            let icoDateWithoutTime = new Date(formData.icoDateDelivery);
-            icoDateWithoutTime.setHours(0);
-            icoDateWithoutTime.setMinutes(0);
-            icoDateWithoutTime.setSeconds(0);
-            icoDateWithoutTime.setMilliseconds(0);
+        //     let icoDateWithoutTime = new Date(formData.icoDateDelivery);
+        //     icoDateWithoutTime.setHours(0);
+        //     icoDateWithoutTime.setMinutes(0);
+        //     icoDateWithoutTime.setSeconds(0);
+        //     icoDateWithoutTime.setMilliseconds(0);
 
-            let selectedHour;
-            let selectedDay;
-            for (let i = 0; i < hoursDelivery.getElementsByClassName('hour').length; i++) {
-                if (hoursDelivery.getElementsByClassName('hour')[i].id.split('_')[2] === formData.icoDateDelivery) {
-                    selectedHour = hoursDelivery.getElementsByClassName('hour')[i];
-                    break;
-                }
-            }
-            for (let i = 0; i < dateSelectionListDelivery.getElementsByClassName('date_selection_item').length; i++) {
-                if (dateSelectionListDelivery.getElementsByClassName('date_selection_item')[i].id.split('_')[2] === icoDateWithoutTime.toISOString()) {
-                    selectedDay = dateSelectionListDelivery.getElementsByClassName('date_selection_item')[i];
-                    break;
-                }
-            }
-            if (selectedHour) {
-                selectedHour.classList.add('hour_active');
-            } else {
-                hoursDelivery.getElementsByClassName('hour')[0].classList.add('hour_active');
-            }
-            selectedDay.getElementsByClassName('date_selection_item_circle')[0].classList.add('selected_circle');
-        }
+        //     let selectedHour;
+        //     let selectedDay;
+        //     for (let i = 0; i < hoursDelivery.getElementsByClassName('hour').length; i++) {
+        //         if (hoursDelivery.getElementsByClassName('hour')[i].id.split('_')[2] === formData.icoDateDelivery) {
+        //             selectedHour = hoursDelivery.getElementsByClassName('hour')[i];
+        //             break;
+        //         }
+        //     }
+        //     for (let i = 0; i < dateSelectionListDelivery.getElementsByClassName('date_selection_item').length; i++) {
+        //         if (dateSelectionListDelivery.getElementsByClassName('date_selection_item')[i].id.split('_')[2] === icoDateWithoutTime.toISOString()) {
+        //             selectedDay = dateSelectionListDelivery.getElementsByClassName('date_selection_item')[i];
+        //             break;
+        //         }
+        //     }
+        //     if (selectedHour) {
+        //         selectedHour.classList.add('hour_active');
+        //     } else {
+        //         hoursDelivery.getElementsByClassName('hour')[0].classList.add('hour_active');
+        //     }
+        //     selectedDay.getElementsByClassName('date_selection_item_circle')[0].classList.add('selected_circle');
+        // }
 
-        if (method === 'pickup' && hoursPickup.getElementsByClassName('hour').length === 0) {
-            createHours(intervals, new Date, new Date(new Date(date).getTime() + 24 * 60 * 60 * 1000), method, pickupPointId, reservationInterval);
-            return;
-        } else if (method === 'pickup' && !formData.icoDatePickup) {
-            const selectedHour = hoursPickup.getElementsByClassName('hour')[0];
-            const selectedDay = document.getElementById(`day_${method}_${dateWithoutTime.toISOString()}`);
-            console.log(selectedHour);
-            formData.icoDatePickup = selectedHour.id.split('_')[2];
-            selectedHour.classList.add('hour_active');
-            selectedDay.getElementsByClassName('date_selection_item_circle')[0].classList.add('selected_circle');
-        } else if (method === 'pickup' && formData.icoDatePickup) {
+        // if (method === 'pickup' && hoursPickup.getElementsByClassName('hour').length === 0) {
+        //     createHours(intervals, new Date, new Date(new Date(date).getTime() + 24 * 60 * 60 * 1000), method, pickupPointId, reservationInterval);
+        //     return;
+        // } else if (method === 'pickup' && !formData.icoDatePickup) {
+        //     const selectedHour = hoursPickup.getElementsByClassName('hour')[0];
+        //     const selectedDay = document.getElementById(`day_${method}_${dateWithoutTime.toISOString()}`);
+        //     console.log(selectedHour);
+        //     formData.icoDatePickup = selectedHour.id.split('_')[2];
+        //     selectedHour.classList.add('hour_active');
+        //     selectedDay.getElementsByClassName('date_selection_item_circle')[0].classList.add('selected_circle');
+        // } else if (method === 'pickup' && formData.icoDatePickup) {
 
-            let icoDateWithoutTime = new Date(formData.icoDatePickup);
-            icoDateWithoutTime.setHours(0);
-            icoDateWithoutTime.setMinutes(0);
-            icoDateWithoutTime.setSeconds(0);
-            icoDateWithoutTime.setMilliseconds(0);
+        //     let icoDateWithoutTime = new Date(formData.icoDatePickup);
+        //     icoDateWithoutTime.setHours(0);
+        //     icoDateWithoutTime.setMinutes(0);
+        //     icoDateWithoutTime.setSeconds(0);
+        //     icoDateWithoutTime.setMilliseconds(0);
 
-            let selectedHour;
-            let selectedDay;
-            for (let i = 0; i < hoursPickup.getElementsByClassName('hour').length; i++) {
-                if (hoursPickup.getElementsByClassName('hour')[i].id.split('_')[2] === formData.icoDatePickup) {
-                    selectedHour = hoursPickup.getElementsByClassName('hour')[i];
-                    break;
-                }
-            }
-            for (let i = 0; i < dateSelectionListPickup.getElementsByClassName('date_selection_item').length; i++) {
-                if (dateSelectionListPickup.getElementsByClassName('date_selection_item')[i].id.split('_')[2] === icoDateWithoutTime.toISOString()) {
-                    selectedDay = dateSelectionListPickup.getElementsByClassName('date_selection_item')[i];
-                    break;
-                }
-            }
-            if (selectedHour) {
-                selectedHour.classList.add('hour_active');
-            } else {
-                hoursPickup.getElementsByClassName('hour')[0].classList.add('hour_active');
-            }
-            selectedDay.getElementsByClassName('date_selection_item_circle')[0].classList.add('selected_circle');
-        }
+        //     let selectedHour;
+        //     let selectedDay;
+        //     for (let i = 0; i < hoursPickup.getElementsByClassName('hour').length; i++) {
+        //         if (hoursPickup.getElementsByClassName('hour')[i].id.split('_')[2] === formData.icoDatePickup) {
+        //             selectedHour = hoursPickup.getElementsByClassName('hour')[i];
+        //             break;
+        //         }
+        //     }
+        //     for (let i = 0; i < dateSelectionListPickup.getElementsByClassName('date_selection_item').length; i++) {
+        //         if (dateSelectionListPickup.getElementsByClassName('date_selection_item')[i].id.split('_')[2] === icoDateWithoutTime.toISOString()) {
+        //             selectedDay = dateSelectionListPickup.getElementsByClassName('date_selection_item')[i];
+        //             break;
+        //         }
+        //     }
+        //     if (selectedHour) {
+        //         selectedHour.classList.add('hour_active');
+        //     } else {
+        //         hoursPickup.getElementsByClassName('hour')[0].classList.add('hour_active');
+        //     }
+        //     selectedDay.getElementsByClassName('date_selection_item_circle')[0].classList.add('selected_circle');
+        // }
 
         choiceTime(intervals, pickupPointId, reservationInterval);
         choiceDate(intervals, pickupPointId, reservationInterval);
@@ -706,15 +738,23 @@ function createPrice() {
 
     console.log(selectedPickupPointData);
 
-    if (selectedPickupPointData.delivery_price === undefined || formData.method === 'pickup') {
-        deliveryPriceContainer.classList.add('hide');
-    } else {
-        deliveryPriceContainer.classList.remove('hide');
-        if (selectedPickupPointData.delivery_price === 0) {
-            deliveryPrice.textContent = 'Бесплатно';
+    let fullDeliveryPrice = selectedPickupPointData.delivery_price;
+    if (basketMainList.minDiscountSumCheck) {
+        if (fullDeliveryPrice <= parseFloat(basketMainList.discountSum)) {
+            fullDeliveryPrice = 0;
         } else {
-            deliveryPrice.textContent = `${selectedPickupPointData.delivery_price} ₽`;
+            fullDeliveryPrice = fullDeliveryPrice - parseFloat(basketMainList.discountSum);
         }
+    }
+    if (fullDeliveryPrice === 0) {
+        deliveryPrice.textContent = `Бесплатно`;
+    } else {
+        deliveryPrice.textContent = `${fullDeliveryPrice} ₽`;
+    }
+    if (formData.method === 'delivery') {
+        deliveryPriceContainer.classList.remove('hide');
+    } else {
+        deliveryPriceContainer.classList.add('hide');
     }
     let fullPriceData = basketMainList.sum;
     if (formData.bonuses) {
@@ -730,9 +770,26 @@ function createPrice() {
         fullPriceData = (fullPriceData * 70 / 100);
     }
     if ((formData.method === 'delivery' || formData.method === null) && selectedPickupPointData.delivery_price) {
-        fullPriceData = fullPriceData + selectedPickupPointData.delivery_price;
+        fullPriceData = fullPriceData + fullDeliveryPrice;
     }
     fullPrice.textContent = `${fullPriceData} ₽`;
+
+    if (basketMainList.methodDelivery) {
+        deliveryNotificationContainer.classList.remove('hide');
+        if (fullDeliveryPrice === 0) {
+            deliveryNotificationPrice.textContent = `Доставка бесплатно`;
+            deliveryNotificationHint.classList.add('hide');
+        } else if (!basketMainList.minDiscountSumCheck) {
+            deliveryNotificationPrice.textContent = `Доставка ${fullDeliveryPrice} ₽`;
+            deliveryNotificationHint.textContent = `Ещё ${parseFloat(basketMainList.minDiscountSum) - basketMainList.sum} ₽ и доставка будет ${fullDeliveryPrice - parseFloat(basketMainList.discountSum) <= 0 ? 'бесплатной' : fullDeliveryPrice - parseFloat(basketMainList.discountSum) + ' ₽'}`;
+            deliveryNotificationHint.classList.remove('hide');
+        } else if (basketMainList.minDiscountSumCheck) {
+            deliveryNotificationPrice.textContent = `Доставка ${fullDeliveryPrice} ₽`;
+            deliveryNotificationHint.classList.add('hide');
+        }
+    } else {
+        deliveryNotificationContainer.classList.add('hide');
+    }
 }
 
 function orderChecker() {

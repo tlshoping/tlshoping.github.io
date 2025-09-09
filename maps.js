@@ -306,7 +306,7 @@ function pickupPointsManage(pickupPointsList, type) { // Генерация то
         }
 
         let deliveryPriceView = 'hide';
-        let deliveryPrice = 150
+        let deliveryPrice = parseInt(pickupPointsDataSort[i].delivery_full_price);
         if (type == 'sort') {
             deliveryPriceView = ''
             pickupPointsDataSort[i].delivery_price = parseFloat(pickupPointsDataSort[i].delivery_full_price);

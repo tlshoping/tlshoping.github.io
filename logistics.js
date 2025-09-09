@@ -579,7 +579,7 @@ function choiceDate() {
 
     for (let i = 0; i < dateDeliveryHtml.length; i++) {
         dateDeliveryHtml[i].addEventListener('click', () => {
-            for (let j = 0; j < datePickupHtml.length; j++) {
+            for (let j = 0; j < dateDeliveryHtml.length; j++) {
                 dateDeliveryHtml[j].getElementsByClassName('date_selection_item_circle')[0].classList.remove('selected_circle');
             };
             dateDeliveryHtml[i].getElementsByClassName('date_selection_item_circle')[0].classList.add('selected_circle');
