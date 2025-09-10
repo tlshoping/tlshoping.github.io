@@ -212,7 +212,7 @@ async function create_basket(basket_list) { //Генерация корзины
             basket_product.outerHTML = `
                     <article class="basket_product" id="basket_${parseInt(basket_list['items'][i]['catalog_id'])}">
                         <div class="container">
-                            <img src="${basket_list['items'][i]['image200']}" class="basket_product_img" loading="lazy" fetchpriority="auto" aria-hidden="true" draggable="false" style="object-fit: contain; object-position: 50% 50%;">
+                            <img src="${url + basket_list['items'][i]['image200']}" class="basket_product_img" loading="lazy" fetchpriority="auto" aria-hidden="true" draggable="false" style="object-fit: contain; object-position: 50% 50%;">
                         </div>
                         <div class="basket_product_info">
                             <p class="basket_product_name">${basket_list['items'][i]['title']}</p>
