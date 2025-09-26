@@ -519,8 +519,6 @@ async function choiceTime(intervals, pickupPointId, reservationInterval) {
             if (hoursHtml[i].id.split('_')[1] === 'delivery') {
                 formData.icoDateDelivery = hoursHtml[i].id.split('_')[2];
 
-                admNotifications(formData);
-
                 createHours(intervals, new Date, formData.icoDateDelivery, 'delivery', pickupPointId, reservationInterval);
 
             } else if (hoursHtml[i].id.split('_')[1] === 'pickup') {

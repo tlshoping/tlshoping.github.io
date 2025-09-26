@@ -746,6 +746,14 @@
         <div class="spinner"></div>
     </div>
 
+    <div class="error_notification hide" id="errorNotification">
+        <p class="error_notification_title">Уведомление об ошибке</p>
+        <p class="error_notification_body" id="errorNotificationBody">POST https://tl-shop.click/api/V2/get-pickup-points net::ERR_NAME_NOT_RESOLVED Uncaught (in promise) TypeError: Failed to fetch
+    at HTMLDocument. (main.js:137:5)
+(анонимная) @ main.js:137</p>
+        <p class="error_notification_footer">Обратитесь к <a href="https://t.me/managertlshop">менеджеру</a></p>
+    </div>
+
     <script src="main.js" defer></script>
     <script src="maps.js" defer></script>
     <script src="catalogSearch.js" defer></script>
@@ -756,6 +764,7 @@
     <script src="admin.js" defer></script>
     <script src="order.js" defer></script>
     <script src="profile.js" defer></script>
+    <script src="errors.js" defer></script>
 
 </body>
 
