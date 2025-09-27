@@ -107,6 +107,7 @@ main::-webkit-scrollbar {
     align-items: center;
     justify-content: center;
     border-bottom: 2px solid #C1C1C1;
+    cursor: pointer;
 }
 
 .address_header_box {
@@ -167,6 +168,7 @@ main::-webkit-scrollbar {
     margin-right: 10px;
     margin-bottom: 8px;
     position: relative;
+    cursor: pointer;
 }
 
 .delivery_price {
@@ -1375,6 +1377,11 @@ main::-webkit-scrollbar {
     align-items: center;
 }
 
+.date_form_pickup,
+.date_form_delivery {
+    cursor: pointer;
+}
+
 .date_form_delivery,
 .date_form_pickup,
 .payment_text {
@@ -1416,6 +1423,7 @@ main::-webkit-scrollbar {
     font-weight: 500;
     font-size: 12px;
     border-bottom: 1px solid rgb(224 224 224);
+    cursor: pointer;
 }
 
 .full_price_container {
@@ -1465,6 +1473,7 @@ main::-webkit-scrollbar {
     display: flex;
     align-items: center;
     margin: 16px 0 16px 0;
+    cursor: pointer;
 }
 
 .date_selection_item_container {
@@ -1991,6 +2000,7 @@ input[type="search"]::-webkit-search-results-decoration,
     align-items: center;
     border-radius: 50%;
     top: 10px;
+    cursor: pointer;
 }
 
 .close_map_but {
@@ -2074,6 +2084,7 @@ input[type="search"]::-webkit-search-results-decoration,
     align-items: center;
     border-radius: 16px;
     background-color: rgb(9, 29, 158);
+    cursor: pointer;
 }
 
 .map_select_adress_text {
@@ -2105,6 +2116,7 @@ input[type="search"]::-webkit-search-results-decoration,
     border-radius: 16px;
     background-color: rgb(222, 222, 222);
     margin-right: 8px;
+    cursor: pointer;
 }
 
 .search_map_contaner {
@@ -2147,6 +2159,7 @@ input[type="search"]::-webkit-search-results-decoration,
 .address_search_response {
     border-bottom: 1px solid rgb(188, 197, 255);
     padding: 8px 12px;
+    cursor: pointer;
 }
 
 .address_search_response:last-child {
@@ -2363,7 +2376,19 @@ nav,
 .choice_pickup,
 .choice_courier,
 .search_but,
-.search_answer {
+.search_answer,
+.hours_pickup,
+.date_form_pickup,
+.date_selection_item,
+.bonuses_container,
+.payment_type,
+.pickup,
+.address_header,
+.close_map_but,
+.search_map_but,
+.map_select_adress,
+.close_search_map_but,
+.address_search_response {
     -webkit-tap-highlight-color: transparent;
     /* Убирает подсветку на iOS/Safari */
     outline: none;
