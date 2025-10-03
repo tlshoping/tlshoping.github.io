@@ -922,7 +922,8 @@ main::-webkit-scrollbar {
 
 .hour,
 .transfer,
-.cash {
+.cash,
+.online {
     margin-right: 5px;
     border: 1px solid #e0e0e0;
     font-size: 16px;
@@ -937,9 +938,14 @@ main::-webkit-scrollbar {
 }
 
 .transfer,
-.cash {
+.cash,
+.online {
     min-width: 125px;
     white-space: normal;
+}
+
+.online {
+    margin-left: 16px;
 }
 
 .hour:first-child,
@@ -2388,7 +2394,8 @@ nav,
 .search_map_but,
 .map_select_adress,
 .close_search_map_but,
-.address_search_response {
+.address_search_response,
+.online {
     -webkit-tap-highlight-color: transparent;
     /* Убирает подсветку на iOS/Safari */
     outline: none;

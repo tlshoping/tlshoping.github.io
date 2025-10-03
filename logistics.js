@@ -240,6 +240,11 @@ function changeMethodToDelivery() {
     formData.method = 'delivery';
     formNoDelivery.classList.remove('hide_no_delivery');
     deliveryPriceContainer.classList.remove('hide');
+    transfer.classList.add('hide');
+    cash.classList.add('hide');
+    online.classList.remove('hide');
+    online.classList.add('hour_active');
+    formData.payment = 'online';
     createPrice();
     orderChecker();
 }
@@ -263,6 +268,11 @@ function changeMethodToPickup() {
     hoursPickup.classList.remove('hide');
     formData.method = 'pickup';
     formNoDelivery.classList.add('hide_no_delivery');
+    transfer.classList.remove('hide');
+    cash.classList.remove('hide');
+    online.classList.add('hide');
+    transfer.classList.add('hour_active');
+    formData.payment = 'transfer';
     createPrice();
     orderChecker();
     deliveryPriceContainer.classList.add('hide');
@@ -533,13 +543,22 @@ async function choiceTime(intervals, pickupPointId, reservationInterval) {
 transfer.addEventListener('click', () => {
     cash.classList.remove('hour_active');
     transfer.classList.add('hour_active');
+    online.classList.remove('hour_active');
     formData.payment = 'transfer';
 })
 
 cash.addEventListener('click', () => {
     cash.classList.add('hour_active');
     transfer.classList.remove('hour_active');
+    online.classList.remove('hour_active');
     formData.payment = 'cash';
+})
+
+online.addEventListener('click', () => {
+    cash.classList.remove('hour_active');
+    transfer.classList.remove('hour_active');
+    online.classList.add('hour_active');
+    formData.payment = 'online';
 })
 
 payBut.addEventListener('click', () => {

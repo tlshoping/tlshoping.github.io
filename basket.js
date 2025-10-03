@@ -334,17 +334,44 @@ async function create_basket(basket_list) { //Генерация корзины
                 formData.method = 'delivery';
             }
             if (payment) {
-                if (payment === 'transfer') {
+                if (method === 'pickup') {
+                    online.classList.add('hide');
+                    transfer.classList.remove('hide');
+                    cash.classList.remove('hide');
+                    if (payment === 'transfer') {
+                        cash.classList.remove('hour_active');
+                        transfer.classList.add('hour_active');
+                        online.classList.remove('hour_active');
+                    } else if (payment === 'cash') {
+                        cash.classList.add('hour_active');
+                        transfer.classList.remove('hour_active');
+                        online.classList.remove('hour_active');
+                    } else {
+                        cash.classList.remove('hour_active');
+                        transfer.classList.add('hour_active');
+                        online.classList.remove('hour_active');
+                        formData.payment = 'transfer';
+                    };
+                } else if (method === 'delivery') {
+                    online.classList.remove('hide');
+                    transfer.classList.add('hide');
+                    cash.classList.add('hide');
+                    cash.classList.remove('hour_active');
+                    transfer.classList.remove('hour_active');
+                    online.classList.add('hour_active');
+                    formData.payment = 'online';
+                }
+            } else {
+                if (method === 'pickup') {
                     cash.classList.remove('hour_active');
                     transfer.classList.add('hour_active');
-                } else if (payment === 'cash') {
-                    cash.classList.add('hour_active');
+                    formData.payment = 'transfer';
+                } else if (method === 'delivery') {
+                    cash.classList.remove('hour_active');
                     transfer.classList.remove('hour_active');
-                };
-            } else {
-                cash.classList.remove('hour_active');
-                transfer.classList.add('hour_active');
-                formData.payment = 'transfer';
+                    online.classList.add('hour_active');
+                    formData.payment = 'online';
+                }
             }
             if (bonuses !== null) {
                 if (bonuses) {
