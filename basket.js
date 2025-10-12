@@ -6,7 +6,7 @@ async function get_basket() {
     let my_get_basketHeaders = new Headers();
     my_get_basketHeaders.append('Content-Type', 'application/json');
     try {
-        const response = await fetch('https://tl-shop.click/api/V2/get-cart', {
+        const response = await fetch('http://localhost:3000/api/V2/get-cart', {
             method: 'POST',
             headers: my_get_basketHeaders,
             body: JSON.stringify(post_get_basketData),
@@ -693,7 +693,7 @@ function createPrice() {
 
     console.log(selectedPickupPointData);
 
-    let fullDeliveryPrice = selectedPickupPointData.delivery_price;
+    let fullDeliveryPrice = selectedPickupPointData.delivery_price ? selectedPickupPointData.delivery_price : basketMainList.deliveryDiscountedPrice;
     if (basketMainList.minDiscountSumCheck) {
         if (fullDeliveryPrice <= parseFloat(basketMainList.discountSum)) {
             fullDeliveryPrice = 0;
@@ -730,6 +730,7 @@ function createPrice() {
     fullPrice.textContent = `${fullPriceData} ₽`;
 
     if (basketMainList.methodDelivery) {
+        console.log(basketMainList);
         deliveryNotificationContainer.classList.remove('hide');
         if (fullDeliveryPrice === 0) {
             deliveryNotificationPrice.textContent = `Доставка бесплатно`;
