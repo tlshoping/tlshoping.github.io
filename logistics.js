@@ -521,24 +521,39 @@ bonusesContainer.addEventListener('click', () => {
     }
 })
 
+let currentHandlersTime = [];
+
 async function choiceTime(intervals, pickupPointId, reservationInterval) {
+    // Удаляем старые обработчики
+    currentHandlersTime.forEach(handler => {
+        handler.element.removeEventListener('click', handler.listener);
+    });
+    currentHandlersTime = [];
+
     const hoursHtml = document.getElementsByClassName('hour');
 
     for (let i = 0; i < hoursHtml.length; i++) {
-        hoursHtml[i].addEventListener('click', () => {
+        const clickHandler = () => {
             if (hoursHtml[i].id.split('_')[1] === 'delivery') {
                 formData.icoDateDelivery = hoursHtml[i].id.split('_')[2];
-
-                createHours(intervals, new Date, formData.icoDateDelivery, 'delivery', pickupPointId, reservationInterval);
-
+                console.log(2);
+                createHours(intervals, new Date(), formData.icoDateDelivery, 'delivery', pickupPointId, reservationInterval);
             } else if (hoursHtml[i].id.split('_')[1] === 'pickup') {
                 formData.icoDatePickup = hoursHtml[i].id.split('_')[2];
-
-                createHours(intervals, new Date, formData.icoDatePickup, 'pickup', pickupPointId, reservationInterval);
+                console.log(1);
+                createHours(intervals, new Date(), formData.icoDatePickup, 'pickup', pickupPointId, reservationInterval);
             }
-        })
+        };
+
+        hoursHtml[i].addEventListener('click', clickHandler);
+        
+        // Сохраняем ссылки на обработчики для последующего удаления
+        currentHandlersTime.push({
+            element: hoursHtml[i],
+            listener: clickHandler
+        });
     }
-};
+}
 
 transfer.addEventListener('click', () => {
     cash.classList.remove('hour_active');
@@ -589,31 +604,50 @@ payBut.addEventListener('click', () => {
     }
 })
 
-
+let dateHandlers = [];
 
 function choiceDate() {
+    // Удаляем старые обработчики
+    dateHandlers.forEach(handler => {
+        handler.element.removeEventListener('click', handler.listener);
+    });
+    dateHandlers = [];
+
     const dateDeliveryHtml = dateSelectionListDelivery.getElementsByClassName('date_selection_item');
-
-    for (let i = 0; i < dateDeliveryHtml.length; i++) {
-        dateDeliveryHtml[i].addEventListener('click', () => {
-            for (let j = 0; j < dateDeliveryHtml.length; j++) {
-                dateDeliveryHtml[j].getElementsByClassName('date_selection_item_circle')[0].classList.remove('selected_circle');
-            };
-            dateDeliveryHtml[i].getElementsByClassName('date_selection_item_circle')[0].classList.add('selected_circle');
-        })
-    }
-
     const datePickupHtml = dateSelectionListPickup.getElementsByClassName('date_selection_item');
 
+    // Обработчики для delivery
+    for (let i = 0; i < dateDeliveryHtml.length; i++) {
+        const clickHandler = () => {
+            for (let j = 0; j < dateDeliveryHtml.length; j++) {
+                dateDeliveryHtml[j].getElementsByClassName('date_selection_item_circle')[0].classList.remove('selected_circle');
+            }
+            dateDeliveryHtml[i].getElementsByClassName('date_selection_item_circle')[0].classList.add('selected_circle');
+        };
+
+        dateDeliveryHtml[i].addEventListener('click', clickHandler);
+        dateHandlers.push({
+            element: dateDeliveryHtml[i],
+            listener: clickHandler
+        });
+    }
+
+    // Обработчики для pickup
     for (let i = 0; i < datePickupHtml.length; i++) {
-        datePickupHtml[i].addEventListener('click', () => {
+        const clickHandler = () => {
             for (let j = 0; j < datePickupHtml.length; j++) {
                 datePickupHtml[j].getElementsByClassName('date_selection_item_circle')[0].classList.remove('selected_circle');
-            };
+            }
             datePickupHtml[i].getElementsByClassName('date_selection_item_circle')[0].classList.add('selected_circle');
-        })
+        };
+
+        datePickupHtml[i].addEventListener('click', clickHandler);
+        dateHandlers.push({
+            element: datePickupHtml[i],
+            listener: clickHandler
+        });
     }
-};
+}
 
 choiceDateDelivery.addEventListener('click', () => {
     const dateDeliveryHtml = dateSelectionListDelivery.getElementsByClassName('date_selection_item');
@@ -622,7 +656,10 @@ choiceDateDelivery.addEventListener('click', () => {
         if (dateDeliveryHtml[i].getElementsByClassName('date_selection_item_circle')[0].classList.contains('selected_circle')) {
             formData.icoDateDelivery = null;
             createHours(
-                basketMainList.deliveryHours,
+                {
+                    delivery: basketMainList.deliveryHours,
+                    pickup: basketMainList.workingHours
+                },
                 new Date,
                 dateDeliveryHtml[i].id.split('_')[2],
                 'delivery',
@@ -640,7 +677,10 @@ choiceDatePickup.addEventListener('click', () => {
         if (datePickupHtml[i].getElementsByClassName('date_selection_item_circle')[0].classList.contains('selected_circle')) {
             formData.icoDatePickup = null;
             createHours(
-                basketMainList.workingHours,
+                {
+                    delivery: basketMainList.deliveryHours,
+                    pickup: basketMainList.workingHours
+                },
                 new Date,
                 datePickupHtml[i].id.split('_')[2],
                 'pickup',

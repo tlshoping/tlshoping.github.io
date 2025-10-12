@@ -413,7 +413,10 @@ async function create_basket(basket_list) { //Генерация корзины
 
             if (dateSelectionDelivery.classList.contains('hide')) {
                 await createHours(
-                    basket_list.deliveryHours,
+                    {
+                        delivery: basket_list.deliveryHours,
+                        pickup: basket_list.workingHours
+                    },
                     new Date,
                     formData.icoDateDelivery ?? new Date,
                     'delivery',
@@ -423,7 +426,10 @@ async function create_basket(basket_list) { //Генерация корзины
             }
             if (dateSelectionPickup.classList.contains('hide')) {
                 await createHours(
-                    basket_list.workingHours,
+                    {
+                        delivery: basket_list.deliveryHours,
+                        pickup: basket_list.workingHours
+                    },
                     new Date,
                     formData.icoDatePickup ?? new Date,
                     'pickup',
@@ -486,7 +492,9 @@ async function createHours(intervals, nowDate, date, method, pickupPointId, rese
 
     try {
 
-        const workingHours = intervals.split('|');
+        console.log(intervals)
+
+        const workingHours = intervals[method].split('|');
 
         nowDate.setMinutes(0);
         nowDate.setSeconds(0);
@@ -672,86 +680,6 @@ async function createHours(intervals, nowDate, date, method, pickupPointId, rese
             }
 
         }
-
-        // if (method === 'delivery' && hoursDelivery.getElementsByClassName('hour').length === 0) {
-        //     createHours(intervals, new Date, new Date(new Date(date).getTime() + 24 * 60 * 60 * 1000), method, pickupPointId, reservationInterval);
-        //     return;
-        // } else if (method === 'delivery' && !formData.icoDateDelivery) {
-        //     const selectedHour = hoursDelivery.getElementsByClassName('hour')[0];
-        //     const selectedDay = document.getElementById(`day_${method}_${dateWithoutTime.toISOString()}`);
-        //     console.log(selectedHour);
-        //     formData.icoDateDelivery = selectedHour.id.split('_')[2];
-        //     selectedHour.classList.add('hour_active');
-        //     selectedDay.getElementsByClassName('date_selection_item_circle')[0].classList.add('selected_circle');
-        // } else if (method === 'delivery' && formData.icoDateDelivery) {
-
-        //     let icoDateWithoutTime = new Date(formData.icoDateDelivery);
-        //     icoDateWithoutTime.setHours(0);
-        //     icoDateWithoutTime.setMinutes(0);
-        //     icoDateWithoutTime.setSeconds(0);
-        //     icoDateWithoutTime.setMilliseconds(0);
-
-        //     let selectedHour;
-        //     let selectedDay;
-        //     for (let i = 0; i < hoursDelivery.getElementsByClassName('hour').length; i++) {
-        //         if (hoursDelivery.getElementsByClassName('hour')[i].id.split('_')[2] === formData.icoDateDelivery) {
-        //             selectedHour = hoursDelivery.getElementsByClassName('hour')[i];
-        //             break;
-        //         }
-        //     }
-        //     for (let i = 0; i < dateSelectionListDelivery.getElementsByClassName('date_selection_item').length; i++) {
-        //         if (dateSelectionListDelivery.getElementsByClassName('date_selection_item')[i].id.split('_')[2] === icoDateWithoutTime.toISOString()) {
-        //             selectedDay = dateSelectionListDelivery.getElementsByClassName('date_selection_item')[i];
-        //             break;
-        //         }
-        //     }
-        //     if (selectedHour) {
-        //         selectedHour.classList.add('hour_active');
-        //     } else {
-        //         hoursDelivery.getElementsByClassName('hour')[0].classList.add('hour_active');
-        //     }
-        //     selectedDay.getElementsByClassName('date_selection_item_circle')[0].classList.add('selected_circle');
-        // }
-
-        // if (method === 'pickup' && hoursPickup.getElementsByClassName('hour').length === 0) {
-        //     createHours(intervals, new Date, new Date(new Date(date).getTime() + 24 * 60 * 60 * 1000), method, pickupPointId, reservationInterval);
-        //     return;
-        // } else if (method === 'pickup' && !formData.icoDatePickup) {
-        //     const selectedHour = hoursPickup.getElementsByClassName('hour')[0];
-        //     const selectedDay = document.getElementById(`day_${method}_${dateWithoutTime.toISOString()}`);
-        //     console.log(selectedHour);
-        //     formData.icoDatePickup = selectedHour.id.split('_')[2];
-        //     selectedHour.classList.add('hour_active');
-        //     selectedDay.getElementsByClassName('date_selection_item_circle')[0].classList.add('selected_circle');
-        // } else if (method === 'pickup' && formData.icoDatePickup) {
-
-        //     let icoDateWithoutTime = new Date(formData.icoDatePickup);
-        //     icoDateWithoutTime.setHours(0);
-        //     icoDateWithoutTime.setMinutes(0);
-        //     icoDateWithoutTime.setSeconds(0);
-        //     icoDateWithoutTime.setMilliseconds(0);
-
-        //     let selectedHour;
-        //     let selectedDay;
-        //     for (let i = 0; i < hoursPickup.getElementsByClassName('hour').length; i++) {
-        //         if (hoursPickup.getElementsByClassName('hour')[i].id.split('_')[2] === formData.icoDatePickup) {
-        //             selectedHour = hoursPickup.getElementsByClassName('hour')[i];
-        //             break;
-        //         }
-        //     }
-        //     for (let i = 0; i < dateSelectionListPickup.getElementsByClassName('date_selection_item').length; i++) {
-        //         if (dateSelectionListPickup.getElementsByClassName('date_selection_item')[i].id.split('_')[2] === icoDateWithoutTime.toISOString()) {
-        //             selectedDay = dateSelectionListPickup.getElementsByClassName('date_selection_item')[i];
-        //             break;
-        //         }
-        //     }
-        //     if (selectedHour) {
-        //         selectedHour.classList.add('hour_active');
-        //     } else {
-        //         hoursPickup.getElementsByClassName('hour')[0].classList.add('hour_active');
-        //     }
-        //     selectedDay.getElementsByClassName('date_selection_item_circle')[0].classList.add('selected_circle');
-        // }
 
         choiceTime(intervals, pickupPointId, reservationInterval);
         choiceDate(intervals, pickupPointId, reservationInterval);
