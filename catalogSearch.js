@@ -7,7 +7,7 @@ async function correctSpelling(botId, pickupPointId, text) {
         };
         let myHeaders = new Headers();
         myHeaders.append('Content-Type', 'application/json');
-        const response = await fetch('http://localhost:3000/api/V2/search', {
+        const response = await fetch('https://tl-shop.click/api/V2/search', {
             method: 'POST',
             headers: myHeaders,
             body: JSON.stringify(postData),
