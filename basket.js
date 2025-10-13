@@ -169,6 +169,99 @@ function basketCartManagement(basket_list) {
     }
 }
 
+function cartManagement(pickupPointData) { //Манипуляция количеством в корзине из каталога
+
+
+
+    let product = document.getElementsByClassName('product');
+
+
+    let cartProduct = document.getElementsByClassName('cart_product');
+
+
+    for (let i = 0; i < product.length; i++) {
+
+
+        let addNone = product[i].getElementsByClassName('add_none_text')[0];
+
+
+        let minus = product[i].getElementsByClassName('minus')[0];
+
+
+        let plus = product[i].getElementsByClassName('plus')[0];
+
+
+        let cartAddNone = cartProduct[i].getElementsByClassName('cart_add_none_text')[0];
+
+
+        let cartMinus = cartProduct[i].getElementsByClassName('cart_minus')[0];
+
+
+        let cartPlus = cartProduct[i].getElementsByClassName('cart_plus')[0];
+
+
+
+
+
+        addNone.addEventListener('click', async () => {
+
+
+            editProductCount(await addProduct(product[i].id, pickupPointData.id), pickupPointData);
+
+
+        });
+
+
+        cartAddNone.addEventListener('click', async () => {
+
+
+            editProductCount(await addProduct(product[i].id, pickupPointData.id), pickupPointData);
+
+
+        });
+
+
+        plus.addEventListener('click', async () => {
+
+
+            editProductCount(await addProduct(product[i].id, pickupPointData.id), pickupPointData);
+
+
+        });
+
+
+        cartPlus.addEventListener('click', async () => {
+
+
+            editProductCount(await addProduct(product[i].id, pickupPointData.id), pickupPointData);
+
+
+        });
+
+
+        minus.addEventListener('click', async () => {
+
+
+            editProductCount(await removeProduct(product[i].id, pickupPointData.id), pickupPointData);
+
+
+        });
+
+
+        cartMinus.addEventListener('click', async () => {
+
+
+            editProductCount(await removeProduct(product[i].id, pickupPointData.id), pickupPointData);
+
+
+        });
+
+
+    };
+
+
+};
+
 function editCartProductCount(basket_list) {
     for (let i = 0; i < basket_list.items.length; i++) {
         let cartProduct = document.getElementById(`basket_${basket_list.items[i].catalog_id}`);
