@@ -66,7 +66,7 @@ function createAddressByCoordsResponse(response) {
 };
 
 function getAddressByCoordsForMap(longitude, latitude) {
-    fetch(`https://geocode-maps.yandex.ru/1.x/?apikey=718490f1-55ce-41d2-9cd3-3d7a5faed336&format=json&geocode=${longitude},${latitude}`, {
+    fetch(`https://geocode-maps.yandex.ru/1.x/?apikey=aef40ef5-c047-4b60-ab1e-7a77961a192c&format=json&geocode=${longitude},${latitude}`, {
         method: 'get',
     }).then((data) => {
         return data.json();
@@ -122,7 +122,7 @@ function createAddressSearchResponse(response) {
 };
 
 function addressSearch(request) {
-    fetch(`https://geocode-maps.yandex.ru/1.x/?apikey=718490f1-55ce-41d2-9cd3-3d7a5faed336&format=json&geocode=${encodeURIComponent(request)}`, {
+    fetch(`https://geocode-maps.yandex.ru/1.x/?apikey=aef40ef5-c047-4b60-ab1e-7a77961a192c&format=json&geocode=${encodeURIComponent(request)}`, {
         method: 'get',
     }).then((data) => {
         return data.json();
@@ -172,7 +172,7 @@ function editAddressHeader(name, description, coords) {
 }
 
 function getAddressByCoords(longitude, latitude) {
-    fetch(`https://geocode-maps.yandex.ru/1.x/?apikey=718490f1-55ce-41d2-9cd3-3d7a5faed336&format=json&geocode=${longitude},${latitude}`, {
+    fetch(`https://geocode-maps.yandex.ru/1.x/?apikey=aef40ef5-c047-4b60-ab1e-7a77961a192c&format=json&geocode=${longitude},${latitude}`, {
         method: 'get',
     }).then((data) => {
         return data.json();
