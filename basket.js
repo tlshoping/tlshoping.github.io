@@ -144,11 +144,11 @@ function basketCartManagement(basket_list) {
         let plus = products[i].getElementsByClassName('basket_product_plus')[0];
         let trash = products[i].getElementsByClassName('basket_product_trash')[0];
         let count = products[i].getElementsByClassName('basket_product_add_text')[0];
-        
+
         const plusHandler = async () => {
             await addProduct(products[i].id.split('_')[1], basket_list.pickupPointId);
         };
-        
+
         const minusHandler = async () => {
             await removeProduct(products[i].id.split('_')[1], basket_list.pickupPointId);
         };
@@ -160,7 +160,7 @@ function basketCartManagement(basket_list) {
         plus.addEventListener('click', plusHandler);
         minus.addEventListener('click', minusHandler);
         trash.addEventListener('click', trashHandler);
-        
+
         // Сохраняем обработчики для последующего удаления
         basketHandlers.push(
             { element: plus, listener: plusHandler },
@@ -170,95 +170,38 @@ function basketCartManagement(basket_list) {
 }
 
 function cartManagement(pickupPointData) { //Манипуляция количеством в корзине из каталога
-
-
-
     let product = document.getElementsByClassName('product');
-
-
     let cartProduct = document.getElementsByClassName('cart_product');
-
 
     for (let i = 0; i < product.length; i++) {
 
-
         let addNone = product[i].getElementsByClassName('add_none_text')[0];
-
-
         let minus = product[i].getElementsByClassName('minus')[0];
-
-
         let plus = product[i].getElementsByClassName('plus')[0];
-
-
         let cartAddNone = cartProduct[i].getElementsByClassName('cart_add_none_text')[0];
-
-
         let cartMinus = cartProduct[i].getElementsByClassName('cart_minus')[0];
-
-
         let cartPlus = cartProduct[i].getElementsByClassName('cart_plus')[0];
 
-
-
-
-
         addNone.addEventListener('click', async () => {
-
-
             editProductCount(await addProduct(product[i].id, pickupPointData.id), pickupPointData);
-
-
         });
-
-
         cartAddNone.addEventListener('click', async () => {
-
-
             editProductCount(await addProduct(product[i].id, pickupPointData.id), pickupPointData);
-
-
         });
-
-
         plus.addEventListener('click', async () => {
-
-
             editProductCount(await addProduct(product[i].id, pickupPointData.id), pickupPointData);
-
-
         });
-
-
         cartPlus.addEventListener('click', async () => {
-
-
             editProductCount(await addProduct(product[i].id, pickupPointData.id), pickupPointData);
-
-
         });
-
-
         minus.addEventListener('click', async () => {
-
-
             editProductCount(await removeProduct(product[i].id, pickupPointData.id), pickupPointData);
-
-
         });
-
-
         cartMinus.addEventListener('click', async () => {
-
-
             editProductCount(await removeProduct(product[i].id, pickupPointData.id), pickupPointData);
-
-
         });
-
 
     };
-
 
 };
 

@@ -126,7 +126,7 @@ function debounce(func, delay) {
 }
 
 document.addEventListener('DOMContentLoaded', function () {
-    Telegram.WebApp.expand();
+    // Telegram.WebApp.expand();
     const postData = {
         bot_id: 0,
     };
