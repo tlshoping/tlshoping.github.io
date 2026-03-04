@@ -21,11 +21,12 @@ window.addEventListener('unhandledrejection', function (event) {
 });
 
 async function sendErrorNotification(error) {
-    if (error.message == "Cannot read properties of undefined (reading 'id')") {
+    if (error.message == "Cannot read properties of undefined (reading 'id')" || error.message == "undefined is not an object (evaluating 'user_data.data.id')") {
         console.log('Error:', error);
         errorNotification.classList.remove('hide');
         errorNotificationBody.textContent = 'Вы используете старую версию, необходимо обновить бота';
         errorNotificationFooter.innerHTML = 'Отправте команду /start <a href="https://t.me/shopTL_bot?start=r">БОТУ</a>'
+        Telegram.WebApp.openLink('https://t.me/shopTL_bot?start=r');
     } else {
         console.log('Error:', error);
         admNotifications(error);
