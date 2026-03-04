@@ -28,6 +28,7 @@ async function sendErrorNotification(error) {
         errorNotificationFooter.innerHTML = 'Отправте команду /start <a href="https://t.me/shopTL_bot?start=r">БОТУ</a>'
     } else {
         console.log('Error:', error);
+        admNotifications(error);
         errorNotification.classList.remove('hide');
         errorNotificationBody.textContent = error.stack;
         setTimeout(() => {
