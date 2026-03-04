@@ -21,10 +21,17 @@ window.addEventListener('unhandledrejection', function (event) {
 });
 
 async function sendErrorNotification(error) {
-    console.log('Error:', error);
-    errorNotification.classList.remove('hide');
-    errorNotificationBody.textContent = error.stack;
-    setTimeout(() => {
-        errorNotification.classList.add('hide');
-    }, 10000);
+    if (error.message == "Cannot read properties of undefined (reading 'id')") {
+        console.log('Error:', error);
+        errorNotification.classList.remove('hide');
+        errorNotificationBody.textContent = 'Вы используете старую версию, необходимо обновить бота';
+        errorNotificationFooter.innerHTML = 'Отправте команду /start <a href="https://t.me/shopTL_bot?start=r">БОТУ</a>'
+    } else {
+        console.log('Error:', error);
+        errorNotification.classList.remove('hide');
+        errorNotificationBody.textContent = error.stack;
+        setTimeout(() => {
+            errorNotification.classList.add('hide');
+        }, 10000);
+    }
 }

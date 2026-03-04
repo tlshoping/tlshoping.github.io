@@ -393,10 +393,16 @@ async function create_basket(basket_list) { //Генерация корзины
                 }
             } else {
                 if (method === 'pickup') {
+                    online.classList.add('hide');
+                    transfer.classList.remove('hide');
+                    cash.classList.remove('hide');
                     cash.classList.remove('hour_active');
                     transfer.classList.add('hour_active');
                     formData.payment = 'transfer';
                 } else if (method === 'delivery') {
+                    online.classList.remove('hide');
+                    transfer.classList.add('hide');
+                    cash.classList.add('hide');
                     cash.classList.remove('hour_active');
                     transfer.classList.remove('hour_active');
                     online.classList.add('hour_active');
