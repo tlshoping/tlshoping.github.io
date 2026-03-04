@@ -139,7 +139,9 @@ function search_hints(pickupPointData) {
                         </div>`;
                         for (let j = 0; j < searchResponseList[i].ids.length; j++) {
                             const searchResponse = findById(common_json_data, searchResponseList[i].ids[j]);
-                            if (searchResponse.children.length > 0) {
+
+                            if (!searchResponse) continue;
+                            if (searchResponse.children && searchResponse.children.length > 0) {
                                 if (searchResponse.category_id != 0) {
                                     const searchParentResponse = findById(common_json_data, searchResponse.category_id);
                                     let searchAnswer = document.createElement('div');
