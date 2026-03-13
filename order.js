@@ -17,7 +17,9 @@ async function createOrder() {
             bonuses: formData.bonuses,
             icoDateDelivery: formData.icoDateDelivery,
             icoDatePickup: formData.icoDatePickup,
-            deliveryPrice: selectedPickupPointData.delivery_price,
+            deliveryPrice: parseFloat(selectedPickupPointData.delivery_price)
+                || parseFloat(basketMainList.deliveryDiscountedPrice)
+                || 0,
             coords: userCoords || null,
         }
 

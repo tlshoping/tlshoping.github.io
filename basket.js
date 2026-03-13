@@ -729,38 +729,53 @@ function createPrice() {
 
     console.log(selectedPickupPointData);
 
-    let fullDeliveryPrice = selectedPickupPointData.delivery_price ? selectedPickupPointData.delivery_price : basketMainList.deliveryDiscountedPrice;
+    let fullDeliveryPrice;
+
+    if (selectedPickupPointData.delivery_price != null) {
+        fullDeliveryPrice = parseFloat(selectedPickupPointData.delivery_price);
+    } else {
+        fullDeliveryPrice = parseFloat(basketMainList.deliveryDiscountedPrice) || 0;
+    }
+
     if (basketMainList.minDiscountSumCheck) {
-        if (fullDeliveryPrice <= parseFloat(basketMainList.discountSum)) {
+        const discount = parseFloat(basketMainList.discountSum) || 0;
+        if (fullDeliveryPrice <= discount) {
             fullDeliveryPrice = 0;
         } else {
-            fullDeliveryPrice = fullDeliveryPrice - parseFloat(basketMainList.discountSum);
+            fullDeliveryPrice = fullDeliveryPrice - discount;
         }
     }
+
     if (fullDeliveryPrice === 0) {
         deliveryPrice.textContent = `Бесплатно`;
     } else {
         deliveryPrice.textContent = `${fullDeliveryPrice} ₽`;
     }
+
     if (formData.method === 'delivery') {
         deliveryPriceContainer.classList.remove('hide');
     } else {
         deliveryPriceContainer.classList.add('hide');
     }
-    let fullPriceData = basketMainList.sum;
+
+    let fullPriceData = parseFloat(basketMainList.sum) || 0;
+
     if (formData.bonuses) {
-        if (basketMainList.balance > fullPriceData) {
-            fullPriceData = fullPriceData - fullPriceData;
+        const balance = parseFloat(basketMainList.balance) || 0;
+        if (balance > fullPriceData) {
+            fullPriceData = 0;
         } else {
-            fullPriceData = fullPriceData - basketMainList.balance;
+            fullPriceData = fullPriceData - balance;
         }
     }
+
     if (basketMainList.status === 'owner') {
         fullPriceData = fullPriceData - fullPriceData;
     } else if (basketMainList.status === 'admin' || basketMainList.status === 'manager' || basketMainList.status === 'courier') {
         fullPriceData = (fullPriceData * 70 / 100);
     }
-    if ((formData.method === 'delivery' || formData.method === null) && selectedPickupPointData.delivery_price) {
+
+    if ((formData.method === 'delivery' || formData.method === null) && fullDeliveryPrice > 0) {
         fullPriceData = fullPriceData + fullDeliveryPrice;
     }
     fullPrice.textContent = `${fullPriceData} ₽`;
