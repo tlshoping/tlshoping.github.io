@@ -81,7 +81,7 @@ async function getOrderRecords(page, limit, secretKey) {
         };
         let myHeaders = new Headers();
         myHeaders.append('Content-Type', 'application/json');
-        const data = await fetch('https://tl-shop.click/api/V2/get-order', {
+        const data = await fetch(`https://${apiUrl}/api/V2/get-order`, {
             method: 'POST',
             headers: myHeaders,
             body: JSON.stringify(postData)
@@ -207,7 +207,7 @@ function block_manag() {
     check_block.addEventListener('click', async () => { // Добавляем async
         if (!check_block.classList.contains('disactive_but')) {
             try {
-                const result = await admin_activate('https://tl-shop.click/api/user_ban', block_input.value); // Ждём ответа
+                const result = await admin_activate(`https://${apiUrl}/api/user_ban`, block_input.value); // Ждём ответа
                 if (result && result.data.result) { // Проверяем result на существование
                     block_input.classList.add('succes_input'); // Добавляем класс (было remove)
                     setTimeout(() => {

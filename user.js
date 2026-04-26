@@ -8,7 +8,7 @@ function get_user(UserPickupPointsData) {
     };
     let my_user_keyHeaders = new Headers();
     my_user_keyHeaders.append('Content-Type', 'application/json');
-    fetch('https://tl-shop.click/api/V2/get-user', {
+    fetch(`https://${apiUrl}/api/V2/get-user`, {
         method: 'POST',
         headers: my_user_keyHeaders,
         body: JSON.stringify(post_user_keyData),
@@ -43,7 +43,7 @@ function updateUser(adressDescription, address, coords, phoneNumber) {
     }
     const myHeaders = new Headers();
     myHeaders.append('Content-Type', 'application/json');
-    fetch('https://tl-shop.click/api/V2/update-user', {
+    fetch(`https://${apiUrl}/api/V2/update-user`, {
         method: 'POST',
         headers: myHeaders,
         body: JSON.stringify(postData),

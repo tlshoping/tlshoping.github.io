@@ -56,6 +56,7 @@ const polygon = [
 let pickupPointsData; // Глобальная переменна точек
 let pickupPointsDataSort; // Глобальная переменна отстортированных точек
 let url = 'https://tl-shop.icu/'; // Глобальная переменна url
+let apiUrl = 'fjgfdrttg.icu';
 let user_key;
 let user_data; // Глобальная переменная данных пользователя
 let orders_count;
@@ -102,7 +103,7 @@ document.addEventListener('DOMContentLoaded', function () {
     secretKey = urlParams.get('secret_key'); // Получить значение параметра "param1"
     let myHeaders = new Headers();
     myHeaders.append('Content-Type', 'application/json');
-    fetch('https://tl-shop.click/api/V2/get-pickup-points', {
+    fetch(`https://${apiUrl}/api/V2/get-pickup-points`, {
         method: 'POST',
         headers: myHeaders,
         body: JSON.stringify(postData),

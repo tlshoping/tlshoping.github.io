@@ -26,7 +26,7 @@ async function createOrder() {
         let headers = new Headers();
         headers.append('Content-Type', 'application/json');
 
-        const response = await fetch('https://tl-shop.click/api/V2/create-order', {
+        const response = await fetch(`https://${apiUrl}/api/V2/create-order`, {
             method: 'POST',
             headers: headers,
             body: JSON.stringify(postData)

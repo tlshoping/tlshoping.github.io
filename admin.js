@@ -41,7 +41,7 @@ async function admNotifications(notificationData) {
     headers.append('Content-Type', 'application/json');
     try {
 
-        await fetch('https://tl-shop.click/api/V2/adm-notifications', {
+        await fetch(`https://${apiUrl}/api/V2/adm-notifications`, {
             method: 'POST',
             headers: headers,
             body: JSON.stringify(postData),
@@ -242,7 +242,7 @@ function create_category(pickupPointData, id, type, title, category_id, descript
         pickup_point_id: pickupPointData.id,
         secret_key: user_data.data.secret_key
     };
-    fetch('https://tl-shop.click/api/V2/catalog-edit', {
+    fetch(`https://${apiUrl}/api/V2/catalog-edit`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
@@ -317,7 +317,7 @@ function category_manage(id, type, pickupPointData, categoryId) {
     };
     let myHeaders = new Headers();
     myHeaders.append('Content-Type', 'application/json');
-    fetch('https://tl-shop.click/api/V2/category_manage', {
+    fetch(`https://${apiUrl}/api/V2/category_manage`, {
         method: 'POST',
         headers: myHeaders,
         body: JSON.stringify(postData),

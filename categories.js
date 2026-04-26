@@ -7,7 +7,7 @@ async function getCatalog(pickupPointData) {
     };
     let myHeaders = new Headers();
     myHeaders.append('Content-Type', 'application/json');
-    const data = await fetch('https://tl-shop.click/api/V2/get-category', {
+    const data = await fetch(`https://${apiUrl}/api/V2/get-category`, {
         method: 'POST',
         headers: myHeaders,
         body: JSON.stringify(postData)

@@ -6,7 +6,7 @@ async function get_basket() {
     let my_get_basketHeaders = new Headers();
     my_get_basketHeaders.append('Content-Type', 'application/json');
     try {
-        const response = await fetch('https://tl-shop.click/api/V2/get-cart', {
+        const response = await fetch(`https://${apiUrl}/api/V2/get-cart`, {
             method: 'POST',
             headers: my_get_basketHeaders,
             body: JSON.stringify(post_get_basketData),
@@ -35,7 +35,7 @@ async function addProduct(product_id, pickupPointId) { // добавить 1 т�
     my_add_productHeaders.append('Content-Type', 'application/json');
 
     try {
-        const response = await fetch('https://tl-shop.click/api/V2/cart-add', {
+        const response = await fetch(`https://${apiUrl}/api/V2/cart-add`, {
             method: 'POST',
             headers: my_add_productHeaders,
             body: JSON.stringify(post_add_productData),
@@ -65,7 +65,7 @@ async function removeProduct(product_id, pickupPointId, count = 1) { // убра
     my_add_productHeaders.append('Content-Type', 'application/json');
 
     try {
-        const response = await fetch('https://tl-shop.click/api/V2/cart-remove', {
+        const response = await fetch(`https://${apiUrl}/api/V2/cart-remove`, {
             method: 'POST',
             headers: my_add_productHeaders,
             body: JSON.stringify(postData),
@@ -90,7 +90,7 @@ function delete_all_product() { // уброать все товары из ко�
     };
     let my_delete_all_productHeaders = new Headers();
     my_delete_all_productHeaders.append('Content-Type', 'application/json');
-    fetch('https://tl-shop.click/api/V2/remove-all-cart', {
+    fetch(`https://${apiUrl}/api/V2/remove-all-cart`, {
         method: 'POST',
         headers: my_delete_all_productHeaders,
         body: JSON.stringify(post_delete_all_productData),
@@ -116,7 +116,7 @@ async function getAllStopHours(pickupPointId, method) {
         };
         let myHeaders = new Headers();
         myHeaders.append('Content-Type', 'application/json');
-        const response = await fetch('https://tl-shop.click/api/V2/get-stop', {
+        const response = await fetch(`https://${apiUrl}/api/V2/get-stop`, {
             method: 'POST',
             headers: myHeaders,
             body: JSON.stringify(postData),
