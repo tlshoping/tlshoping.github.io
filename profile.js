@@ -47,7 +47,7 @@ async function createOrdersList(page, limit) {
                     <div class="order_product">
                         <div class="order_product_info">
                             <div class="order_container">
-                                <img class="order_img" src="${url + '/' + orderRecords.records[i].items[j].img}" loading="lazy" fetchpriority="auto" aria-hidden="true" draggable="false">
+                                <img class="order_img" src="${url + '/' + orderRecords.records[i].items[j].img}?t=${Date.now()}" loading="lazy" fetchpriority="auto" aria-hidden="true" draggable="false">
                             </div>
                             <div class="order_product_ident">
                                 <p class="order_product_category">${orderRecords.records[i].items[j].parent_title}</p>
