@@ -586,7 +586,7 @@ function show_cart() { //Открытие карточки
             cart_product[i].classList.add('hide');
 
             product[i].scrollIntoView({
-                behavior: 'auto',
+                behavior: 'smooth',
                 block: 'center'
             });
         });
@@ -613,7 +613,7 @@ function show_cart() { //Открытие карточки
                 cart_category[i].classList.add('hide');
 
                 category[i].scrollIntoView({   // ← добавлено
-                    behavior: 'auto',
+                    behavior: 'smooth',
                     block: 'center'
                 });
             });
