@@ -584,6 +584,11 @@ function show_cart() { //Открытие карточки
             catalog.classList.remove('hide');
             cart.classList.add('hide');
             cart_product[i].classList.add('hide');
+
+            product[i].scrollIntoView({
+                behavior: 'auto',
+                block: 'center'
+            });
         });
     };
     if (user_data.data.status == 'admin' || user_data.data.status == 'manager' || user_data.data.status == 'owner' || user_data.data.status == 'logistician') {
@@ -606,6 +611,11 @@ function show_cart() { //Открытие карточки
                 catalog.classList.remove('hide');
                 cart.classList.add('hide');
                 cart_category[i].classList.add('hide');
+
+                category[i].scrollIntoView({   // ← добавлено
+                    behavior: 'auto',
+                    block: 'center'
+                });
             });
         };
     }
