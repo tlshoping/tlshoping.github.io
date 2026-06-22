@@ -312,7 +312,7 @@ function pickupPointsManage(pickupPointsList, type) { // Генерация то
             console.log(pickupPointsDataSort);
             deliveryPriceView = ''
             pickupPointsDataSort[i].delivery_price = parseFloat(pickupPointsDataSort[i].delivery_full_price);
-            let deliveryPrice = parseFloat(pickupPointsDataSort[i].delivery_full_price) - parseFloat(pickupPointsDataSort[i].delivery_discounted_price);
+            deliveryPrice = parseFloat(pickupPointsDataSort[i].delivery_full_price) - parseFloat(pickupPointsDataSort[i].delivery_discounted_price);
             if (i == 0) {
                 pickupPointsDataSort[i].delivery_price = parseFloat(pickupPointsDataSort[i].delivery_discounted_price);
                 deliveryPrice = parseFloat(pickupPointsDataSort[i].delivery_full_price) - parseFloat(pickupPointsDataSort[i].delivery_discounted_price) - parseFloat(pickupPointsDataSort[i].discount_sum);
