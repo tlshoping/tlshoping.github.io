@@ -88,7 +88,7 @@ function create_categories(json_data, category_id, type, searchRequest, pickupPo
                 show_eye = 'hide';
                 hide_eye = '';
             }
-        } else if (user_data.data.status === 'manager') {
+        } else if (user_data.data.status === 'manager' || user_data.data.status === 'logistician') {
 
             hide = false;
             adminHide = '';
@@ -372,7 +372,7 @@ function create_categories(json_data, category_id, type, searchRequest, pickupPo
         admChangeCategory(pickupPointData);
         admManageCategory(pickupPointData);
     }
-    if (user_data.data.status == 'manager') {
+    if (user_data.data.status == 'manager' || user_data.data.status == 'logistician') {
         admChangeCategory(pickupPointData);
     }
     show_cart();
@@ -586,7 +586,7 @@ function show_cart() { //Открытие карточки
             cart_product[i].classList.add('hide');
         });
     };
-    if (user_data.data.status == 'admin' || user_data.data.status == 'manager' || user_data.data.status == 'owner') {
+    if (user_data.data.status == 'admin' || user_data.data.status == 'manager' || user_data.data.status == 'owner' || user_data.data.status == 'logistician') {
         for (let i = 0; i < category.length; i++) {//Открытие карточки продкута
             let img = category[i].getElementsByClassName('img')[0];
             let cart_back = cart_category[i].getElementsByClassName('cart_path')[0];
