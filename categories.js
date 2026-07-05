@@ -459,6 +459,18 @@ function back_to_category(pickupPointData) { //Назад в категорию
                 add_cart[0].remove();
             };
             create_categories(json_data_new, category_father_id, '', '', pickupPointData);
+
+            const scrollToId = category_id;
+            const tryScroll = (attemptsLeft) => {
+                const target = document.getElementById(String(scrollToId));
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                } else if (attemptsLeft > 0) {
+                    requestAnimationFrame(() => tryScroll(attemptsLeft - 1));
+                }
+            };
+            requestAnimationFrame(() => tryScroll(5));
+
         }
     });
 };
@@ -535,6 +547,17 @@ async function reload(pickupPointData, categoryId) {
     }
 };
 
+function scrollToCatalogItem(itemId) {
+    const target = document.getElementById(itemId);
+    if (!target) return;
+
+    target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    target.classList.add('just_created');
+    setTimeout(() => {
+        target.classList.remove('just_created');
+    }, 1500);
+    console.log('Конец скрола');
+}
 
 function findById(data, id) {
     // Проверяем, является ли текущий элемент объектом

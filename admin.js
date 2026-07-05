@@ -248,11 +248,19 @@ function create_category(pickupPointData, id, type, title, category_id, descript
             'Content-Type': 'application/json'
         },
         body: JSON.stringify(postData)
-    }).then(() => {
-        catalogPage.classList.remove('hide');
-        cart.classList.add('hide');
-        reload(pickupPointData, category_id);
-    });
+    })
+        .then((response) => response.json())
+        .then((responseData) => {
+            catalogPage.classList.remove('hide');
+            cart.classList.add('hide');
+
+            const targetId = (id == 0) ? responseData.id : id;
+
+            reload(pickupPointData, category_id).then(() => {
+                console.log('Запуск срола');
+                scrollToCatalogItem(targetId);
+            });
+        });
 };
 
 function admManageCategory(pickupPointData) {
