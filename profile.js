@@ -74,7 +74,7 @@ async function getOrderRecords(page, limit, secretKey) {
     try {
 
         const postData = {
-            botId: 0,
+            botId: bot_id,
             secretKey: secretKey,
             page: page,
             limit: limit

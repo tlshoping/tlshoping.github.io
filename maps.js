@@ -325,7 +325,7 @@ function pickupPointsManage(pickupPointsList, type) { // Генерация то
             `
         <li class="pickup">
             <p class="delivery_price ${deliveryPriceView}">Доставка ${deliveryPrice}₽</p>
-            <div class="pickup_container" style="background-color: rgb(237, 14, 0)">
+            <div class="pickup_container" style="background-color: ${pickupPointsList[i].background_color || 'rgb(237, 14, 0)'}">
                 <div class="icon_container">
                     <img src="${url + pickupPointsList[i].logo}?t=${Date.now()}" class="pickup_icon"
                         loading="lazy" fetchpriority="auto" aria-hidden="true" draggable="false"

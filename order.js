@@ -2,7 +2,7 @@ async function createOrder() {
     try {
 
         const postData = {
-            botId: 0,
+            botId: bot_id,
             secretKey: secretKey,
             method: formData.method,
             address: userAddress || null,

@@ -96,11 +96,14 @@ function debounce(func, delay) {
 
 document.addEventListener('DOMContentLoaded', function () {
     // Telegram.WebApp.expand();
-    const postData = {
-        bot_id: 0,
-    };
     const urlParams = new URLSearchParams(window.location.search);
-    secretKey = urlParams.get('secret_key'); // Получить значение параметра "param1"
+    secretKey = urlParams.get('secret_key');
+    userId = urlParams.get('user_id');
+    bot_id = urlParams.get('bot_id') || bot_id;
+
+    const postData = {
+        bot_id: bot_id,
+    };
     let myHeaders = new Headers();
     myHeaders.append('Content-Type', 'application/json');
     fetch(`https://${apiUrl}/api/V2/get-pickup-points`, {

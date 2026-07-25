@@ -1,6 +1,6 @@
 async function get_basket() {
     const post_get_basketData = {
-        bot_id: 0,
+        bot_id: bot_id,
         user_secret_key: user_data.data.secret_key
     };
     let my_get_basketHeaders = new Headers();
@@ -25,7 +25,7 @@ async function get_basket() {
 
 async function addProduct(product_id, pickupPointId) { // добавить 1 товар в корзину
     const post_add_productData = {
-        bot_id: 0,
+        bot_id: bot_id,
         user_secret_key: user_data.data.secret_key,
         catalog_id: product_id,
         pickup_point_id: pickupPointId,
@@ -55,7 +55,7 @@ async function addProduct(product_id, pickupPointId) { // добавить 1 т�
 
 async function removeProduct(product_id, pickupPointId, count = 1) { // убрать 1 товар из корзины
     const postData = {
-        bot_id: 0,
+        bot_id: bot_id,
         user_secret_key: user_data.data.secret_key,
         catalog_id: product_id,
         pickup_point_id: pickupPointId,
@@ -110,7 +110,7 @@ async function getAllStopHours(pickupPointId, method) {
     try {
 
         const postData = {
-            bot_id: 0,
+            bot_id: bot_id,
             pickupPointId: pickupPointId,
             method: method
         };
