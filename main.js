@@ -55,7 +55,7 @@ const polygon = [
 
 let pickupPointsData; // Глобальная переменна точек
 let pickupPointsDataSort; // Глобальная переменна отстортированных точек
-let url = 'https://tl-shop.icu/'; // Глобальная переменна url
+let url = 'https://uyktyuertefge5.lol/'; // Глобальная переменна url
 let apiUrl = 'fjgfdrttg.icu';
 let user_key;
 let user_data; // Глобальная переменная данных пользователя
