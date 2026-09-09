@@ -1,6 +1,12 @@
 function get_user(UserPickupPointsData) {
 
-    ymaps.ready(init);
+    ensureYandexMapsLoaded()
+        .then(() => {
+            ymaps.ready(init);
+        })
+        .catch((error) => {
+            console.error('Не удалось инициализировать Yandex Maps:', error);
+        });
 
     const post_user_keyData = {
         bot_id: 0,

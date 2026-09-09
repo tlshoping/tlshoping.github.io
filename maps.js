@@ -65,14 +65,13 @@ function createAddressByCoordsResponse(response) {
     };
 };
 
-function getAddressByCoordsForMap(longitude, latitude) {
-    fetch(`https://geocode-maps.yandex.ru/1.x/?apikey=f1221bfd-10ff-47b9-980f-15aac6dde446&format=json&geocode=${longitude},${latitude}`, {
-        method: 'get',
-    }).then((data) => {
-        return data.json();
-    }).then((json_data) => {
+async function getAddressByCoordsForMap(longitude, latitude) {
+    try {
+        const json_data = await fetchYandexGeocode(`${longitude},${latitude}`);
         createAddressByCoordsResponse(json_data.response);
-    });
+    } catch (error) {
+        console.error('Ошибка получения адреса для карты:', error);
+    }
 };
 
 function setMapCenter(latitude, longitude) {
@@ -121,14 +120,13 @@ function createAddressSearchResponse(response) {
 
 };
 
-function addressSearch(request) {
-    fetch(`https://geocode-maps.yandex.ru/1.x/?apikey=f1221bfd-10ff-47b9-980f-15aac6dde446&format=json&geocode=${encodeURIComponent(request)}`, {
-        method: 'get',
-    }).then((data) => {
-        return data.json();
-    }).then((json_data) => {
+async function addressSearch(request) {
+    try {
+        const json_data = await fetchYandexGeocode(request);
         createAddressSearchResponse(json_data.response);
-    });
+    } catch (error) {
+        console.error('Ошибка поиска адреса:', error);
+    }
 };
 
 // Обновленный обработчик ввода с debounce (задержка 1000 мс)
@@ -171,17 +169,14 @@ function editAddressHeader(name, description, coords) {
     };
 }
 
-function getAddressByCoords(longitude, latitude) {
-    fetch(`https://geocode-maps.yandex.ru/1.x/?apikey=f1221bfd-10ff-47b9-980f-15aac6dde446&format=json&geocode=${longitude},${latitude}`, {
-        method: 'get',
-    }).then((data) => {
-        return data.json();
-    }).then((json_data) => {
+async function getAddressByCoords(longitude, latitude) {
+    try {
+        const json_data = await fetchYandexGeocode(`${longitude},${latitude}`);
         console.log(json_data.response);
         addressQuestion.classList.remove('hide');
         addressNotification.classList.add('hide');
         addressQuestionDiscript.textContent = json_data.response.GeoObjectCollection.featureMember[0].GeoObject.name;
-        editAddressHeader(json_data.response.GeoObjectCollection.featureMember[0].GeoObject.name, 
+        editAddressHeader(json_data.response.GeoObjectCollection.featureMember[0].GeoObject.name,
             json_data.response.GeoObjectCollection.featureMember[0].GeoObject.description,
             json_data.response.GeoObjectCollection.featureMember[0].GeoObject.Point.pos);
         addressQuestionYes.addEventListener('click', () => {
@@ -191,7 +186,9 @@ function getAddressByCoords(longitude, latitude) {
             const [toLatitude, toLongitude] = json_data.response.GeoObjectCollection.featureMember[0].GeoObject.Point.pos.split(' ');
             getNearestPoint(toLongitude, toLatitude);
         });
-    });
+    } catch (error) {
+        console.error('Ошибка получения адреса по координатам:', error);
+    }
 };
 
 function requestGeolocation() {

@@ -76,6 +76,145 @@ const months = ['янв', 'фев', 'мар', 'апр', 'мая', 'июн', 'и�
 let selectedPickupPointData; // Глобальная переменная выбранной точки
 let userCoords; // Глобальная переменна координат пользователя
 let searchController = null; // Глобальная переменна контроллера поиска
+let activeYandexMapsKey = null;
+let yandexMapsReadyPromise = null;
+let mapsKeyReloadInProgress = false;
+
+const MAPS_SCRIPT_ID = 'yandex-maps-script';
+const MAX_MAPS_KEY_RELOADS = 5;
+
+function isInvalidMapsApiKeyPayload(payload) {
+    return Number(payload?.statusCode) === 403
+        && payload?.error === 'Forbidden'
+        && payload?.message === 'Invalid api key';
+}
+
+async function fetchRandomMapsApiKey() {
+    const response = await fetch(`https://${apiUrl}/api/V2/maps/key`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({})
+    });
+
+    const payload = await response.json();
+
+    if (!response.ok || !payload?.data?.api_key) {
+        throw new Error(payload?.error || 'Не удалось получить API-ключ Yandex Maps');
+    }
+
+    activeYandexMapsKey = payload.data.api_key;
+
+    return activeYandexMapsKey;
+}
+
+function loadYandexMapsScript(apiKey) {
+    return new Promise((resolve, reject) => {
+        if (window.ymaps) {
+            resolve(window.ymaps);
+            return;
+        }
+
+        const existingScript = document.getElementById(MAPS_SCRIPT_ID);
+        if (existingScript) {
+            existingScript.remove();
+        }
+
+        const script = document.createElement('script');
+        script.id = MAPS_SCRIPT_ID;
+        script.src = `https://api-maps.yandex.ru/2.1/?apikey=${encodeURIComponent(apiKey)}&lang=ru_RU`;
+        script.type = 'text/javascript';
+        script.async = true;
+        script.onload = () => resolve(window.ymaps);
+        script.onerror = () => reject(new Error('Не удалось загрузить Yandex Maps JS API'));
+
+        document.head.appendChild(script);
+    });
+}
+
+async function ensureYandexMapsLoaded() {
+    if (!yandexMapsReadyPromise) {
+        yandexMapsReadyPromise = (async () => {
+            const apiKey = await fetchRandomMapsApiKey();
+            await loadYandexMapsScript(apiKey);
+            sessionStorage.removeItem('mapsKeyReloadAttempts');
+            return window.ymaps;
+        })().catch((error) => {
+            yandexMapsReadyPromise = null;
+            throw error;
+        });
+    }
+
+    return yandexMapsReadyPromise;
+}
+
+async function reportInvalidMapsApiKey(payload) {
+    if (!activeYandexMapsKey) {
+        return;
+    }
+
+    try {
+        await fetch(`https://${apiUrl}/api/V2/maps/report-invalid-key`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                api_key: activeYandexMapsKey,
+                ...payload
+            })
+        });
+    } catch (error) {
+        console.error('Не удалось пометить API-ключ как неактивный:', error);
+    }
+}
+
+async function reloadWithNextMapsKey(payload) {
+    if (mapsKeyReloadInProgress) {
+        return;
+    }
+
+    mapsKeyReloadInProgress = true;
+
+    const attempts = Number(sessionStorage.getItem('mapsKeyReloadAttempts') || '0');
+
+    if (attempts >= MAX_MAPS_KEY_RELOADS) {
+        console.error('Достигнут лимит перезагрузок при смене Maps API ключа.');
+        return;
+    }
+
+    sessionStorage.setItem('mapsKeyReloadAttempts', String(attempts + 1));
+
+    await reportInvalidMapsApiKey(payload);
+
+    const nextUrl = new URL(window.location.href);
+    nextUrl.searchParams.set('_maps_reload', String(Date.now()));
+    window.location.replace(nextUrl.toString());
+}
+
+async function fetchYandexGeocode(geocode) {
+    if (!activeYandexMapsKey) {
+        throw new Error('API-ключ Yandex Maps ещё не загружен');
+    }
+
+    const response = await fetch(`https://geocode-maps.yandex.ru/1.x/?apikey=${encodeURIComponent(activeYandexMapsKey)}&format=json&geocode=${encodeURIComponent(geocode)}`, {
+        method: 'GET'
+    });
+
+    const payload = await response.json();
+
+    if (isInvalidMapsApiKeyPayload(payload)) {
+        await reloadWithNextMapsKey(payload);
+        throw new Error('Текущий API-ключ Yandex Maps невалиден');
+    }
+
+    if (!response.ok) {
+        throw new Error(payload?.error || `Yandex Maps geocode error: ${response.status}`);
+    }
+
+    return payload;
+}
 
 
 function load() {
