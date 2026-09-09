@@ -20,8 +20,12 @@ function get_user(UserPickupPointsData) {
     }).then(async (json_user_key_data) => {
         user_data = json_user_key_data;
         userId = user_data.data.id;
-        if (!user_data.data.address) {
+
+        const hasSavedAddress = Boolean(user_data?.data?.address);
+
+        if (!hasSavedAddress) {
             addressNotification.classList.add('show');
+            pickupPointsManage(UserPickupPointsData);
             requestGeolocation();
         } else {
             editAddressHeader(user_data.data.address, user_data.data.adress_description);
@@ -29,9 +33,8 @@ function get_user(UserPickupPointsData) {
             await getNearestPoint(user_data.data.longitude, user_data.data.latitude);
             userCoords = `${user_data.data.latitude} ${user_data.data.longitude}`;
         };
-    }).then(() => {
+
         profile_manag();
-        pickupPointsManage(UserPickupPointsData);
     });
 };
 
