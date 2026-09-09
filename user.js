@@ -1,9 +1,6 @@
 function get_user(UserPickupPointsData) {
 
-    ensureYandexMapsLoaded()
-        .then(() => {
-            ymaps.ready(init);
-        })
+    ensureMapInitialized()
         .catch((error) => {
             console.error('Не удалось инициализировать Yandex Maps:', error);
         });
@@ -20,7 +17,7 @@ function get_user(UserPickupPointsData) {
         body: JSON.stringify(post_user_keyData),
     }).then((user_key_data) => {
         return user_key_data.json();
-    }).then((json_user_key_data) => {
+    }).then(async (json_user_key_data) => {
         user_data = json_user_key_data;
         userId = user_data.data.id;
         if (!user_data.data.address) {
@@ -28,8 +25,8 @@ function get_user(UserPickupPointsData) {
             requestGeolocation();
         } else {
             editAddressHeader(user_data.data.address, user_data.data.adress_description);
-            setMapCenter(user_data.data.longitude, user_data.data.latitude);
-            getNearestPoint(user_data.data.longitude, user_data.data.latitude);
+            await setMapCenter(user_data.data.longitude, user_data.data.latitude);
+            await getNearestPoint(user_data.data.longitude, user_data.data.latitude);
             userCoords = `${user_data.data.latitude} ${user_data.data.longitude}`;
         };
     }).then(() => {

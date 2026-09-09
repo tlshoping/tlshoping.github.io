@@ -2,8 +2,13 @@ centerCords = [];
 
 let map;
 let router;
+let mapInitPromise;
 
 function init() {
+    if (map) {
+        return map;
+    }
+
     if (centerCords.length == 0) {
         centerCords = [68.95352822824434, 33.08080770254042]
     }
@@ -47,7 +52,39 @@ function init() {
     map.controls.remove('fullscreenControl'); // удаляем кнопку перехода в полноэкранный режим
     map.controls.remove('zoomControl'); // удаляем контрол зуммирования
     map.controls.remove('rulerControl'); // удаляем контрол правил
+
+    return map;
 };
+
+async function ensureMapInitialized() {
+    if (map) {
+        return map;
+    }
+
+    if (!mapInitPromise) {
+        mapInitPromise = (async () => {
+            await ensureYandexMapsLoaded();
+
+            await new Promise((resolve, reject) => {
+                ymaps.ready(() => {
+                    try {
+                        init();
+                        resolve();
+                    } catch (error) {
+                        reject(error);
+                    }
+                });
+            });
+
+            return map;
+        })().catch((error) => {
+            mapInitPromise = null;
+            throw error;
+        });
+    }
+
+    return mapInitPromise;
+}
 
 function createAddressByCoordsResponse(response) {
     mapGeocode.textContent = response.GeoObjectCollection.featureMember[0].GeoObject.name;
@@ -74,15 +111,11 @@ async function getAddressByCoordsForMap(longitude, latitude) {
     }
 };
 
-function setMapCenter(latitude, longitude) {
+async function setMapCenter(latitude, longitude) {
+    const readyMap = await ensureMapInitialized();
 
-    if (!map) {
-        console.error('Карта не инициализирована');
-        return;
-    }
-
-    map.setCenter([latitude, longitude]); // Яндекс.Карты используют порядок [долгота, широта]
-    map.setZoom(17); // Увеличиваем масштаб для лучшего обзора
+    readyMap.setCenter([latitude, longitude]); // Яндекс.Карты используют порядок [долгота, широта]
+    readyMap.setZoom(17); // Увеличиваем масштаб для лучшего обзора
 
 }
 
@@ -194,9 +227,9 @@ async function getAddressByCoords(longitude, latitude) {
 function requestGeolocation() {
     if ("geolocation" in navigator) {
         navigator.geolocation.getCurrentPosition(
-            (position) => {
-                getAddressByCoords(position.coords.longitude, position.coords.latitude);
-                setMapCenter(position.coords.latitude, position.coords.longitude)
+            async (position) => {
+                await getAddressByCoords(position.coords.longitude, position.coords.latitude);
+                await setMapCenter(position.coords.latitude, position.coords.longitude)
             },
             (error) => {
                 console.error("Ошибка получения геолокации:", error.message);
@@ -207,11 +240,13 @@ function requestGeolocation() {
     }
 }
 
-function setRouter(fromLongitude, fromLatitude, toLongitude, toLatitude) {
+async function setRouter(fromLongitude, fromLatitude, toLongitude, toLatitude) {
+    const readyMap = await ensureMapInitialized();
+
     return new Promise((resolve, reject) => {
         // Удаляем предыдущий маршрут, если он есть
         if (router) {
-            map.geoObjects.remove(router);
+            readyMap.geoObjects.remove(router);
         }
 
         router = new ymaps.multiRouter.MultiRoute({
@@ -250,6 +285,8 @@ function setRouter(fromLongitude, fromLatitude, toLongitude, toLatitude) {
 
 async function getNearestPoint(toLongitude, toLatitude) {
     try {
+
+        await ensureMapInitialized();
 
         noDelivery.classList.add('hide');
         formNoDelivery.classList.add('hide');
