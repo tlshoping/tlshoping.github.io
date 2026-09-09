@@ -4,6 +4,18 @@ let map;
 let router;
 let mapInitPromise;
 
+const MAP_SELECT_ADDRESS_LOADING_TEXT = 'Определяем адрес...';
+const MAP_SELECT_ADDRESS_READY_TEXT = 'Я здесь';
+const MAP_SELECT_ADDRESS_FALLBACK_TEXT = 'Выбрать эту точку';
+
+function setMapSelectAddressState(text = MAP_SELECT_ADDRESS_LOADING_TEXT, isReady = false) {
+    mapSelectAdress.classList.remove('hide');
+    mapSelectAdress.style.pointerEvents = isReady ? 'auto' : 'none';
+    mapSelectAdress.style.opacity = isReady ? '1' : '0.85';
+    mapSelectAdress.style.cursor = isReady ? 'pointer' : 'default';
+    mapSelectAdress.querySelector('.map_select_adress_text').textContent = text;
+}
+
 function init() {
     if (map) {
         return map;
@@ -36,6 +48,8 @@ function init() {
 
         map.geoObjects.add(placamark);
     };
+
+    setMapSelectAddressState();
 
     let center = map.getCenter();
     getAddressByCoordsForMap(center[1], center[0]);
@@ -87,26 +101,39 @@ async function ensureMapInitialized() {
 }
 
 function createAddressByCoordsResponse(response) {
-    mapGeocode.textContent = response.GeoObjectCollection.featureMember[0].GeoObject.name;
+    const geoObject = response?.GeoObjectCollection?.featureMember?.[0]?.GeoObject;
+
+    if (!geoObject) {
+        mapGeocode.textContent = '';
+        mapSelectAdress.onclick = null;
+        setMapSelectAddressState(MAP_SELECT_ADDRESS_FALLBACK_TEXT, false);
+        return;
+    }
+
+    mapGeocode.textContent = geoObject.name;
+    setMapSelectAddressState(MAP_SELECT_ADDRESS_READY_TEXT, true);
 
     mapSelectAdress.onclick = () => {
-        editAddressHeader(response.GeoObjectCollection.featureMember[0].GeoObject.name,
-            response.GeoObjectCollection.featureMember[0].GeoObject.description,
-            response.GeoObjectCollection.featureMember[0].GeoObject.Point.pos
+        editAddressHeader(geoObject.name,
+            geoObject.description,
+            geoObject.Point.pos
         );
-        updateUser(response.GeoObjectCollection.featureMember[0].GeoObject.description,
-            response.GeoObjectCollection.featureMember[0].GeoObject.name,
-            response.GeoObjectCollection.featureMember[0].GeoObject.Point.pos);
-        const [toLatitude, toLongitude] = response.GeoObjectCollection.featureMember[0].GeoObject.Point.pos.split(' ');
+        updateUser(geoObject.description,
+            geoObject.name,
+            geoObject.Point.pos);
+        const [toLatitude, toLongitude] = geoObject.Point.pos.split(' ');
         getNearestPoint(toLongitude, toLatitude);
     };
 };
 
 async function getAddressByCoordsForMap(longitude, latitude) {
     try {
+        setMapSelectAddressState();
         const json_data = await fetchYandexGeocode(`${longitude},${latitude}`);
         createAddressByCoordsResponse(json_data.response);
     } catch (error) {
+        mapSelectAdress.onclick = null;
+        setMapSelectAddressState(MAP_SELECT_ADDRESS_FALLBACK_TEXT, false);
         console.error('Ошибка получения адреса для карты:', error);
     }
 };
