@@ -10,6 +10,8 @@ const MAP_SELECT_ADDRESS_FALLBACK_TEXT = 'Выбрать эту точку';
 
 function setMapSelectAddressState(text = MAP_SELECT_ADDRESS_LOADING_TEXT, isReady = false) {
     mapSelectAdress.classList.remove('hide');
+    mapSelectAdress.style.display = 'flex';
+    mapSelectAdress.style.visibility = 'visible';
     mapSelectAdress.style.pointerEvents = isReady ? 'auto' : 'none';
     mapSelectAdress.style.opacity = isReady ? '1' : '0.85';
     mapSelectAdress.style.cursor = isReady ? 'pointer' : 'default';

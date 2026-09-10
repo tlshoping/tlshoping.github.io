@@ -52,7 +52,7 @@ async function createOrder() {
                 || parseFloat(basketMainList.deliveryDiscountedPrice)
                 || 0,
             coords: userCoords || null,
-            source: 'site'
+            source: 'bot'
         }
 
         let headers = new Headers();
