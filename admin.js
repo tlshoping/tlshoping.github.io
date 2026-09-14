@@ -263,6 +263,78 @@ function create_category(pickupPointData, id, type, title, category_id, descript
         });
 };
 
+function admBulkCategoryPrice(pickupPointData) {
+    const bulkPriceSections = document.getElementsByClassName('bulk_price_section');
+
+    for (let i = 0; i < bulkPriceSections.length; i++) {
+        const section = bulkPriceSections[i];
+        const categoryId = parseInt(section.dataset.categoryId);
+        const bulkPriceMode = section.getElementsByClassName('bulk_price_mode')[0];
+        const bulkPriceInput = section.getElementsByClassName('bulk_price_input')[0];
+        const saveBulkPrice = section.getElementsByClassName('save_bulk_price')[0];
+        const saveBulkPriceText = saveBulkPrice.getElementsByClassName('save_category_text')[0];
+        const defaultButtonText = saveBulkPriceText.textContent;
+
+        function checkBulkPriceForm() {
+            const numericValue = Number(bulkPriceInput.value);
+
+            if (bulkPriceInput.value.trim() !== '' && Number.isFinite(numericValue)) {
+                saveBulkPrice.classList.remove('disactive_but');
+            } else {
+                saveBulkPrice.classList.add('disactive_but');
+            }
+        }
+
+        bulkPriceInput.addEventListener('input', checkBulkPriceForm);
+        bulkPriceMode.addEventListener('change', checkBulkPriceForm);
+
+        saveBulkPrice.addEventListener('click', async () => {
+            if (saveBulkPrice.classList.contains('disactive_but')) {
+                return;
+            }
+
+            const categoryList = document.getElementsByClassName('category_list')[0];
+            saveBulkPrice.classList.add('disactive_but');
+            saveBulkPriceText.textContent = 'Сохраняю...';
+
+            try {
+                const response = await fetch(`https://${apiUrl}/api/V2/category-bulk-price`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        bot_id: 0,
+                        category_id: categoryId,
+                        pickup_point_id: pickupPointData.id,
+                        mode: bulkPriceMode.value,
+                        value: bulkPriceInput.value,
+                        secret_key: user_data.data.secret_key
+                    })
+                });
+
+                const responseData = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(responseData.error || 'Не удалось массово обновить цены');
+                }
+
+                catalogPage.classList.remove('hide');
+                cart.classList.add('hide');
+
+                await reload(pickupPointData, categoryList.id);
+                scrollToCatalogItem(categoryId);
+            } catch (error) {
+                console.error('Ошибка массового изменения цен:', error);
+                alert(error.message || 'Не удалось массово обновить цены');
+            } finally {
+                saveBulkPriceText.textContent = defaultButtonText;
+                checkBulkPriceForm();
+            }
+        });
+    }
+}
+
 function admManageCategory(pickupPointData) {
     let categoryList = document.getElementsByClassName('category_list')[0];
     let category = document.getElementsByClassName('category');

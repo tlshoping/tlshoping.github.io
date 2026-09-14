@@ -594,6 +594,55 @@ main::-webkit-scrollbar {
     margin-bottom: 20px;
 }
 
+.bulk_price_section {
+    margin-left: 16px;
+    margin-right: 16px;
+    margin-bottom: 24px;
+    width: calc(100% - 32px);
+    padding-top: 20px;
+    border-top: 1px solid #C1C1C1;
+}
+
+.bulk_price_title {
+    font-size: 18px;
+    font-weight: 500;
+}
+
+.bulk_price_hint {
+    margin-top: 8px;
+    font-size: 14px;
+    font-weight: 300;
+    color: #454545;
+}
+
+.bulk_price_mode,
+.bulk_price_input {
+    border: 1px solid #505050;
+    border-radius: 8px;
+    padding: 10px 8px;
+    width: 100%;
+    font-size: 18px;
+    font-family: "Roboto", sans-serif;
+    font-weight: 400;
+    color: #000000;
+    margin-top: 12px;
+    background-color: #ffffff;
+    box-sizing: border-box;
+}
+
+.save_bulk_price {
+    margin-top: 16px;
+    width: calc(100% - 108px);
+    min-width: 80px;
+    min-height: 49px;
+    border-radius: 8px;
+    background-color: #091D9E;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+}
+
 .cart_price_menu {
     border-top: 1px solid #C1C1C1;
     display: flex;
