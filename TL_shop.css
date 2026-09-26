@@ -603,6 +603,15 @@ main::-webkit-scrollbar {
     border-top: 1px solid #C1C1C1;
 }
 
+.bulk_description_section {
+    margin-left: 16px;
+    margin-right: 16px;
+    margin-bottom: 24px;
+    width: calc(100% - 32px);
+    padding-top: 20px;
+    border-top: 1px solid #C1C1C1;
+}
+
 .bulk_price_title {
     font-size: 18px;
     font-weight: 500;
@@ -616,7 +625,8 @@ main::-webkit-scrollbar {
 }
 
 .bulk_price_mode,
-.bulk_price_input {
+.bulk_price_input,
+.bulk_description_input {
     border: 1px solid #505050;
     border-radius: 8px;
     padding: 10px 8px;
@@ -630,7 +640,25 @@ main::-webkit-scrollbar {
     box-sizing: border-box;
 }
 
+.bulk_description_input {
+    resize: vertical;
+    min-height: 120px;
+}
+
 .save_bulk_price {
+    margin-top: 16px;
+    width: calc(100% - 108px);
+    min-width: 80px;
+    min-height: 49px;
+    border-radius: 8px;
+    background-color: #091D9E;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+}
+
+.save_bulk_description {
     margin-top: 16px;
     width: calc(100% - 108px);
     min-width: 80px;

@@ -335,6 +335,73 @@ function admBulkCategoryPrice(pickupPointData) {
     }
 }
 
+function admBulkCategoryDescription(pickupPointData) {
+    const bulkDescriptionSections = document.getElementsByClassName('bulk_description_section');
+
+    for (let i = 0; i < bulkDescriptionSections.length; i++) {
+        const section = bulkDescriptionSections[i];
+        const categoryId = parseInt(section.dataset.categoryId);
+        const bulkDescriptionInput = section.getElementsByClassName('bulk_description_input')[0];
+        const saveBulkDescription = section.getElementsByClassName('save_bulk_description')[0];
+        const saveBulkDescriptionText = saveBulkDescription.getElementsByClassName('save_category_text')[0];
+        const defaultButtonText = saveBulkDescriptionText.textContent;
+
+        function checkBulkDescriptionForm() {
+            if (bulkDescriptionInput.value.trim() !== '') {
+                saveBulkDescription.classList.remove('disactive_but');
+            } else {
+                saveBulkDescription.classList.add('disactive_but');
+            }
+        }
+
+        bulkDescriptionInput.addEventListener('input', checkBulkDescriptionForm);
+
+        saveBulkDescription.addEventListener('click', async () => {
+            if (saveBulkDescription.classList.contains('disactive_but')) {
+                return;
+            }
+
+            const categoryList = document.getElementsByClassName('category_list')[0];
+            saveBulkDescription.classList.add('disactive_but');
+            saveBulkDescriptionText.textContent = 'Сохраняю...';
+
+            try {
+                const response = await fetch(`https://${apiUrl}/api/V2/category-bulk-description`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        bot_id: 0,
+                        category_id: categoryId,
+                        pickup_point_id: pickupPointData.id,
+                        description: bulkDescriptionInput.value.trim(),
+                        secret_key: user_data.data.secret_key
+                    })
+                });
+
+                const responseData = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(responseData.error || 'Не удалось массово обновить описания');
+                }
+
+                catalogPage.classList.remove('hide');
+                cart.classList.add('hide');
+
+                await reload(pickupPointData, categoryList.id);
+                scrollToCatalogItem(categoryId);
+            } catch (error) {
+                console.error('Ошибка массового изменения описаний:', error);
+                alert(error.message || 'Не удалось массово обновить описания');
+            } finally {
+                saveBulkDescriptionText.textContent = defaultButtonText;
+                checkBulkDescriptionForm();
+            }
+        });
+    }
+}
+
 function admManageCategory(pickupPointData) {
     let categoryList = document.getElementsByClassName('category_list')[0];
     let category = document.getElementsByClassName('category');
@@ -347,6 +414,9 @@ function admManageCategory(pickupPointData) {
 
         removeCategory.addEventListener('click', (event) => {
             event.stopPropagation();
+            if (!confirm('Точно удалить эту категорию?')) {
+                return;
+            }
             category_manage(category[i].id, 'remove', pickupPointData, categoryList.id);
         })
         showCategory.addEventListener('click', (event) => {
@@ -370,6 +440,9 @@ function admManageCategory(pickupPointData) {
 
         removeCategory.addEventListener('click', (event) => {
             event.stopPropagation();
+            if (!confirm('Точно удалить этот товар?')) {
+                return;
+            }
             category_manage(product[i].id, 'remove', pickupPointData, categoryList.id);
         })
         showCategory.addEventListener('click', (event) => {

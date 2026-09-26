@@ -188,6 +188,14 @@ function create_categories(json_data, category_id, type, searchRequest, pickupPo
                                 <p class="save_category_text">Применить ко всем товарам</p>
                             </div>
                         </div>
+                        <div class="bulk_description_section ${adminHide} ${managerHide}" data-category-id="${json_data[i]['id']}">
+                            <p class="bulk_price_title">Массово изменить описания</p>
+                            <p class="bulk_price_hint">Новое описание применится ко всем товарам в этой категории и вложенных подкатегориях.</p>
+                            <textarea class="bulk_description_input" placeholder="Введите новое описание для всех товаров" rows="5"></textarea>
+                            <div class="save_bulk_description disactive_but" type="button">
+                                <p class="save_category_text">Применить ко всем товарам</p>
+                            </div>
+                        </div>
                     </article>
                     `;
             } else { //если товар
@@ -385,6 +393,7 @@ function create_categories(json_data, category_id, type, searchRequest, pickupPo
         admChangeCategory(pickupPointData);
         admManageCategory(pickupPointData);
         admBulkCategoryPrice(pickupPointData);
+        admBulkCategoryDescription(pickupPointData);
     }
     if (user_data.data.status == 'manager' || user_data.data.status == 'logistician') {
         admChangeCategory(pickupPointData);
