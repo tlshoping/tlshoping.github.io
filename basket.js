@@ -363,52 +363,8 @@ async function create_basket(basket_list) { //Генерация корзины
                 methodDelivery.classList.add('method_selected');
                 formData.method = 'delivery';
             }
-            if (payment) {
-                if (method === 'pickup') {
-                    online.classList.add('hide');
-                    transfer.classList.remove('hide');
-                    cash.classList.remove('hide');
-                    if (payment === 'transfer') {
-                        cash.classList.remove('hour_active');
-                        transfer.classList.add('hour_active');
-                        online.classList.remove('hour_active');
-                    } else if (payment === 'cash') {
-                        cash.classList.add('hour_active');
-                        transfer.classList.remove('hour_active');
-                        online.classList.remove('hour_active');
-                    } else {
-                        cash.classList.remove('hour_active');
-                        transfer.classList.add('hour_active');
-                        online.classList.remove('hour_active');
-                        formData.payment = 'transfer';
-                    };
-                } else if (method === 'delivery') {
-                    online.classList.remove('hide');
-                    transfer.classList.add('hide');
-                    cash.classList.add('hide');
-                    cash.classList.remove('hour_active');
-                    transfer.classList.remove('hour_active');
-                    online.classList.add('hour_active');
-                    formData.payment = 'online';
-                }
-            } else {
-                if (method === 'pickup') {
-                    online.classList.add('hide');
-                    transfer.classList.remove('hide');
-                    cash.classList.remove('hide');
-                    cash.classList.remove('hour_active');
-                    transfer.classList.add('hour_active');
-                    formData.payment = 'transfer';
-                } else if (method === 'delivery') {
-                    online.classList.remove('hide');
-                    transfer.classList.add('hide');
-                    cash.classList.add('hide');
-                    cash.classList.remove('hour_active');
-                    transfer.classList.remove('hour_active');
-                    online.classList.add('hour_active');
-                    formData.payment = 'online';
-                }
-            }
+            formData.payment = payment;
+            updateDeliveryPaymentOptions();
             if (bonuses !== null) {
                 if (bonuses) {
                     bonusesOn.classList.remove('hide');
@@ -526,29 +482,40 @@ async function create_basket(basket_list) { //Генерация корзины
 
 async function createHours(intervals, nowDate, date, method, pickupPointId, reservationInterval, timeZone) {
 
+    const renderVersion = ++hourRenderVersions[method];
     try {
 
         console.log(intervals)
 
         const workingHours = intervals[method].split('|');
 
-        nowDate.setMinutes(0);
-        nowDate.setSeconds(0);
-        nowDate.setMilliseconds(0);
+        // Use the point's timezone, not the customer's device timezone.
+        const offset = Number(timeZone ?? basketMainList.timeZone ?? 3) * 3600000;
+        const localDate = value => new Date(new Date(value).getTime() + offset);
+        const midnight = value => {
+            const local = localDate(value);
+            return new Date(Date.UTC(local.getUTCFullYear(), local.getUTCMonth(), local.getUTCDate()) - offset);
+        };
+        nowDate = new Date(Math.floor(nowDate.getTime() / 3600000) * 3600000);
+        const dateWithoutTime = midnight(date);
+        const nowDateWithoutTime = midnight(nowDate);
 
-        let dateWithoutTime = new Date(date);
-        dateWithoutTime.setHours(0);
-        dateWithoutTime.setMinutes(0);
-        dateWithoutTime.setSeconds(0);
-        dateWithoutTime.setMilliseconds(0);
-
-        let nowDateWithoutTime = new Date(nowDate);
-        nowDateWithoutTime.setHours(0);
-        nowDateWithoutTime.setMinutes(0);
-        nowDateWithoutTime.setSeconds(0);
-        nowDateWithoutTime.setMilliseconds(0);
-
-        const stopHours = await getAllStopHours(pickupPointId, method);
+        if (method === 'delivery') {
+            deliveryCourierAvailabilityReady = false;
+            const status = document.getElementById('courierAvailabilityStatus');
+            if (status) status.textContent = 'Проверяем доступность курьеров...';
+            updateDeliveryPaymentOptions();
+        }
+        const [stopHours, courierHours] = await Promise.all([
+            getAllStopHours(pickupPointId, method),
+            method === 'delivery' ? fetchDeliveryCourierHours(pickupPointId) : null
+        ]);
+        if (renderVersion !== hourRenderVersions[method]) return;
+        if (method === 'delivery') {
+            deliveryCourierHours = courierHours;
+            deliveryCourierPointId = pickupPointId;
+            deliveryCourierAvailabilityReady = true;
+        }
 
         let hoursHtml;
         let daysHtml;
@@ -576,13 +543,13 @@ async function createHours(intervals, nowDate, date, method, pickupPointId, rese
 
             if (diffDays === 0) dayOfWeek = 'Сегодня';
             else if (diffDays === 1) dayOfWeek = 'Завтра';
-            else dayOfWeek = days[new Date(nowDateWithoutTime.getTime() + 24 * 60 * 60 * 1000 * i).getDay()];
+            else dayOfWeek = days[localDate(nowDateWithoutTime.getTime() + 86400000 * i).getUTCDay()];
 
             dateList.push(
                 {
                     date: new Date(nowDateWithoutTime.getTime() + 24 * 60 * 60 * 1000 * i).toISOString(),
                     dayOfWeek: dayOfWeek,
-                    dayOfMonth: `${new Date(nowDateWithoutTime.getTime() + 24 * 60 * 60 * 1000 * i).getDate()} ${months[new Date(nowDateWithoutTime.getTime() + 24 * 60 * 60 * 1000 * i).getMonth()]}`,
+                    dayOfMonth: `${localDate(nowDateWithoutTime.getTime() + 86400000 * i).getUTCDate()} ${months[localDate(nowDateWithoutTime.getTime() + 86400000 * i).getUTCMonth()]}`,
                     hours: []
                 }
             );
@@ -593,11 +560,8 @@ async function createHours(intervals, nowDate, date, method, pickupPointId, rese
 
                 for (let k = 0; k < hoursNum; k++) {
 
-                    let inlineHour = new Date(nowDate.getTime() + 24 * 60 * 60 * 1000 * i);
-                    inlineHour.setHours(parseInt(workingHours[j].split('-')[0].split(':')[0]) + k);
-                    inlineHour.setMinutes(0);
-                    inlineHour.setSeconds(0);
-                    inlineHour.setMilliseconds(0);
+                    const inlineHour = new Date(nowDateWithoutTime.getTime() + 86400000 * i
+                        + (parseInt(workingHours[j].split('-')[0].split(':')[0]) + k) * 3600000);
 
                     if (
                         parseInt(nowDate.getTime()) > parseInt(inlineHour.getTime() - (method === 'delivery' ? 60 * 60 * 1000 : 0))
@@ -707,7 +671,8 @@ async function createHours(intervals, nowDate, date, method, pickupPointId, rese
                     hour.outerHTML = `
                             <li class="hour ${activeFlag}" id="hour_${method}_${dateList[i].hours[j]}">
                                 <p class="hour_date">${dateList[i].dayOfWeek}</p>
-                                <p class="hour_text">${new Date(dateList[i].hours[j]).getHours() + ':00-' + (parseInt(new Date(dateList[i].hours[j]).getHours()) + 1) + ':00'}</p>
+                                <p class="hour_text">${localDate(dateList[i].hours[j]).getUTCHours()}:00-${localDate(dateList[i].hours[j]).getUTCHours() + 1}:00</p>
+                                ${method === 'delivery' && !courierHours.has(dateList[i].hours[j]) ? '<small class="hour_prepayment">Предоплата</small>' : ''}
                             </li>
                             `
 
@@ -717,11 +682,24 @@ async function createHours(intervals, nowDate, date, method, pickupPointId, rese
 
         }
 
+        if (dataFlag) {
+            if (method === 'delivery') formData.icoDateDelivery = null;
+            else formData.icoDatePickup = null;
+        }
+        updateDeliveryPaymentOptions();
+        orderChecker();
         choiceTime(intervals, pickupPointId, reservationInterval);
         choiceDate(intervals, pickupPointId, reservationInterval);
 
     } catch (err) {
         console.log(err);
+        if (method === 'delivery' && renderVersion === hourRenderVersions[method]) {
+            deliveryCourierAvailabilityReady = false;
+            updateDeliveryPaymentOptions();
+            orderChecker();
+            const status = document.getElementById('courierAvailabilityStatus');
+            if (status) status.textContent = 'Не удалось проверить курьеров. Откройте корзину заново.';
+        }
     }
 }
 
@@ -801,7 +779,9 @@ function createPrice() {
 
 function orderChecker() {
     if (formData.method == 'delivery' || formData.method === undefined) {
-        if (userAddress !== undefined && formNoDelivery.classList.contains('hide') && (formData.phone && formData.phone.split('').length == 18)) {
+        if (deliveryCourierAvailabilityReady && Number(deliveryCourierPointId) === Number(selectedPickupPointData.id)
+            && formData.icoDateDelivery && formData.payment
+            && userAddress !== undefined && formNoDelivery.classList.contains('hide') && (formData.phone && formData.phone.split('').length == 18)) {
             payBut.classList.remove('disactive_but');
             return true;
         } else {
@@ -809,7 +789,7 @@ function orderChecker() {
             return false;
         }
     } else if (formData.method == 'pickup') {
-        if (formData.phone && formData.phone.split('').length == 18) {
+        if (formData.icoDatePickup && formData.phone && formData.phone.split('').length == 18) {
             payBut.classList.remove('disactive_but');
             return true;
         } else {

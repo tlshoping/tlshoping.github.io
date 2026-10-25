@@ -1,5 +1,50 @@
 
 
+let deliveryCourierHours = new Set();
+let deliveryCourierPointId = null;
+let deliveryCourierAvailabilityReady = false;
+const hourRenderVersions = { delivery: 0, pickup: 0 };
+
+async function fetchDeliveryCourierHours(pickupPointId) {
+    const response = await fetch(`https://${apiUrl}/api/V2/courier-availability`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            bot_id: bot_id,
+            secret_key: secretKey,
+            pickup_point_id: pickupPointId
+        })
+    });
+    const payload = await response.json();
+    if (!response.ok) throw new Error(payload.error || 'Не удалось проверить расписание курьеров');
+    return new Set(payload.data.map(row => new Date(row.interval).toISOString()));
+}
+
+function updateDeliveryPaymentOptions() {
+    const delivery = formData.method === 'delivery';
+    const known = deliveryCourierAvailabilityReady
+        && Number(deliveryCourierPointId) === Number(selectedPickupPointData.id);
+    const hasCourier = delivery && known && deliveryCourierHours.has(formData.icoDateDelivery);
+    const onSite = !delivery || hasCourier;
+    transfer.classList.toggle('hide', !onSite);
+    cash.classList.toggle('hide', !onSite);
+    online.classList.toggle('hide', onSite || !known);
+    if (onSite) {
+        if (!['cash', 'transfer'].includes(formData.payment)) formData.payment = 'transfer';
+    } else if (known) {
+        formData.payment = 'online';
+    }
+    transfer.classList.toggle('hour_active', formData.payment === 'transfer');
+    cash.classList.toggle('hour_active', formData.payment === 'cash');
+    online.classList.toggle('hour_active', formData.payment === 'online');
+    const status = document.getElementById('courierAvailabilityStatus');
+    if (status) status.classList.toggle('hide', !delivery || known);
+    const hint = document.getElementById('deliveryPrepaymentHelp');
+    if (hint && (onSite || !known)) hint.hidden = true;
+    const helpButton = document.getElementById('deliveryPrepaymentHelpButton');
+    if (helpButton && hint.hidden) helpButton.setAttribute('aria-expanded', 'false');
+}
+
 function hideAll() {
     mainPage.classList.add('hide');
     mapPage.classList.add('hide');
@@ -240,11 +285,7 @@ function changeMethodToDelivery() {
     formData.method = 'delivery';
     formNoDelivery.classList.remove('hide_no_delivery');
     deliveryPriceContainer.classList.remove('hide');
-    transfer.classList.add('hide');
-    cash.classList.add('hide');
-    online.classList.remove('hide');
-    online.classList.add('hour_active');
-    formData.payment = 'online';
+    updateDeliveryPaymentOptions();
     createPrice();
     orderChecker();
 }
@@ -268,11 +309,7 @@ function changeMethodToPickup() {
     hoursPickup.classList.remove('hide');
     formData.method = 'pickup';
     formNoDelivery.classList.add('hide_no_delivery');
-    transfer.classList.remove('hide');
-    cash.classList.remove('hide');
-    online.classList.add('hide');
-    transfer.classList.add('hour_active');
-    formData.payment = 'transfer';
+    updateDeliveryPaymentOptions();
     createPrice();
     orderChecker();
     deliveryPriceContainer.classList.add('hide');
@@ -536,6 +573,7 @@ async function choiceTime(intervals, pickupPointId, reservationInterval) {
         const clickHandler = () => {
             if (hoursHtml[i].id.split('_')[1] === 'delivery') {
                 formData.icoDateDelivery = hoursHtml[i].id.split('_')[2];
+                updateDeliveryPaymentOptions();
                 console.log(2);
                 createHours(intervals, new Date(), formData.icoDateDelivery, 'delivery', pickupPointId, reservationInterval);
             } else if (hoursHtml[i].id.split('_')[1] === 'pickup') {
@@ -556,6 +594,7 @@ async function choiceTime(intervals, pickupPointId, reservationInterval) {
 }
 
 transfer.addEventListener('click', () => {
+    if (transfer.classList.contains('hide')) return;
     cash.classList.remove('hour_active');
     transfer.classList.add('hour_active');
     online.classList.remove('hour_active');
@@ -563,6 +602,7 @@ transfer.addEventListener('click', () => {
 })
 
 cash.addEventListener('click', () => {
+    if (cash.classList.contains('hide')) return;
     cash.classList.add('hour_active');
     transfer.classList.remove('hour_active');
     online.classList.remove('hour_active');
@@ -570,13 +610,26 @@ cash.addEventListener('click', () => {
 })
 
 online.addEventListener('click', () => {
+    if (online.classList.contains('hide')) return;
     cash.classList.remove('hour_active');
     transfer.classList.remove('hour_active');
     online.classList.add('hour_active');
     formData.payment = 'online';
 })
 
+document.getElementById('deliveryPrepaymentHelpButton').addEventListener('click', event => {
+    event.stopPropagation();
+    const hint = document.getElementById('deliveryPrepaymentHelp');
+    hint.hidden = !hint.hidden;
+    event.currentTarget.setAttribute('aria-expanded', String(!hint.hidden));
+});
+
 payBut.addEventListener('click', () => {
+    if (formData.method === 'delivery' && (!deliveryCourierAvailabilityReady
+        || Number(deliveryCourierPointId) !== Number(selectedPickupPointData.id))) {
+        alert('Не удалось проверить расписание курьеров. Откройте корзину заново и повторите попытку.');
+        return;
+    }
     console.log(formData);
     if (orderChecker()) {
         createOrder();

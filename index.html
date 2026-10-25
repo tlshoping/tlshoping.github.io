@@ -413,7 +413,17 @@
                     <div class="payment_type">
                         <div class="transfer" id="transfer">Перевод при получении</div>
                         <div class="cash" id="cash">Наличными при получении</div>
-                        <div class="online" id="online">Предоплата переводом</div>
+                        <div class="online" id="online">
+                            Предоплата переводом
+                            <button type="button" id="deliveryPrepaymentHelpButton" class="prepayment_help_button"
+                                aria-expanded="false" aria-controls="deliveryPrepaymentHelp" aria-label="Почему нужна предоплата?">?</button>
+                        </div>
+                    </div>
+                    <p id="courierAvailabilityStatus" class="courier_availability_status hide">Проверяем доступность курьеров...</p>
+                    <div id="deliveryPrepaymentHelp" class="prepayment_help" hidden>
+                        На выбранный час нет свободных курьеров, поэтому оплата на месте невозможна.
+                        Заказ будет отправлен сторонним сервисом доставки после предоплаты переводом.
+                        Попробуйте выбрать другой час или оформите самовывоз, если условия предоплаты вам не подходят.
                     </div>
                 </div>
                 <div class="pay_form">

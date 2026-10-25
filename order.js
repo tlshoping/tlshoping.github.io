@@ -67,6 +67,13 @@ async function createOrder() {
         const payload = await response.json().catch(() => null);
 
         if (!response.ok) {
+            if (payload?.code === 'DELIVERY_PAYMENT_CHANGED') {
+                await createHours(
+                    { delivery: basketMainList.deliveryHours, pickup: basketMainList.workingHours },
+                    new Date(), formData.icoDateDelivery, 'delivery',
+                    basketMainList.pickupPointId, basketMainList.reservationInterval
+                );
+            }
             throw new Error(payload?.error || 'Ошибка оформления заказа');
         }
 
@@ -80,5 +87,7 @@ async function createOrder() {
 
     } catch (error) {
         console.error('Error:', error);
+        loading.classList.add('hide');
+        alert(error.message || 'Не удалось оформить заказ. Повторите попытку.');
     }
 }
