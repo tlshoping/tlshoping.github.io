@@ -17,15 +17,17 @@ async function fetchDeliveryCourierHours(pickupPointId) {
     });
     const payload = await response.json();
     if (!response.ok) throw new Error(payload.error || 'Не удалось проверить расписание курьеров');
+    basketMainList.deliveryOnSiteBlocked = Boolean(payload.deliveryOnSiteBlocked);
     return new Set(payload.data.map(row => new Date(row.interval).toISOString()));
 }
 
 function updateDeliveryPaymentOptions() {
     const delivery = formData.method === 'delivery';
+    const blocked = Boolean(basketMainList.deliveryOnSiteBlocked);
     const known = deliveryCourierAvailabilityReady
         && Number(deliveryCourierPointId) === Number(selectedPickupPointData.id);
     const hasCourier = delivery && known && deliveryCourierHours.has(formData.icoDateDelivery);
-    const onSite = !delivery || hasCourier;
+    const onSite = !delivery || (hasCourier && !blocked);
     transfer.classList.toggle('hide', !onSite);
     cash.classList.toggle('hide', !onSite);
     online.classList.toggle('hide', onSite || !known);
@@ -40,9 +42,13 @@ function updateDeliveryPaymentOptions() {
     const status = document.getElementById('courierAvailabilityStatus');
     if (status) status.classList.toggle('hide', !delivery || known);
     const hint = document.getElementById('deliveryPrepaymentHelp');
-    if (hint && (onSite || !known)) hint.hidden = true;
+    if (hint && (blocked || onSite || !known)) hint.hidden = true;
     const helpButton = document.getElementById('deliveryPrepaymentHelpButton');
-    if (helpButton && hint.hidden) helpButton.setAttribute('aria-expanded', 'false');
+    if (helpButton) {
+        helpButton.classList.toggle('hide', blocked);
+        helpButton.hidden = blocked;
+        if (hint?.hidden) helpButton.setAttribute('aria-expanded', 'false');
+    }
 }
 
 function hideAll() {
@@ -620,6 +626,10 @@ online.addEventListener('click', () => {
 document.getElementById('deliveryPrepaymentHelpButton').addEventListener('click', event => {
     event.stopPropagation();
     const hint = document.getElementById('deliveryPrepaymentHelp');
+    if (basketMainList.deliveryOnSiteBlocked) {
+        hint.hidden = true;
+        return;
+    }
     hint.hidden = !hint.hidden;
     event.currentTarget.setAttribute('aria-expanded', String(!hint.hidden));
 });

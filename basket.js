@@ -672,7 +672,7 @@ async function createHours(intervals, nowDate, date, method, pickupPointId, rese
                             <li class="hour ${activeFlag}" id="hour_${method}_${dateList[i].hours[j]}">
                                 <p class="hour_date">${dateList[i].dayOfWeek}</p>
                                 <p class="hour_text">${localDate(dateList[i].hours[j]).getUTCHours()}:00-${localDate(dateList[i].hours[j]).getUTCHours() + 1}:00</p>
-                                ${method === 'delivery' && !courierHours.has(dateList[i].hours[j]) ? '<small class="hour_prepayment">Предоплата</small>' : ''}
+                                ${method === 'delivery' && !basketMainList.deliveryOnSiteBlocked && !courierHours.has(dateList[i].hours[j]) ? '<small class="hour_prepayment">Предоплата</small>' : ''}
                             </li>
                             `
 
