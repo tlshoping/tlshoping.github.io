@@ -399,6 +399,7 @@ function create_categories(json_data, category_id, type, searchRequest, pickupPo
         admChangeCategory(pickupPointData);
     }
     show_cart();
+    mountGiftManagement(pickupPointData);
     cartManagement(pickupPointData, json_data);
     open_categories(pickupPointData);
     editProductCount(basketMainList, pickupPointData)
@@ -511,6 +512,7 @@ function editProductCount(cartData, pickupPointData) {    //Редактиров
         cartProductList[i].getElementsByClassName('cart_add_text')[0].classList.add('hide');
         cartProductList[i].getElementsByClassName('cart_plus')[0].classList.add('hide');
         for (let j = 0; j < cartData.items.length; j++) {
+            if (cartData.items[j].is_gift) continue;
             if (productsList[i].id == cartData.items[j].catalog_id && cartData.items[j].pickup_point_id == pickupPointData.id) {
 
                 productsList[i].getElementsByClassName('add_none_text')[0].classList.add('hide');

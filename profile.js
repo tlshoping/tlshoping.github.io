@@ -51,7 +51,7 @@ async function createOrdersList(page, limit) {
                             </div>
                             <div class="order_product_ident">
                                 <p class="order_product_category">${orderRecords.records[i].items[j].parent_title}</p>
-                                <p class="order_product_name">${orderRecords.records[i].items[j].title}</p>
+                                <p class="order_product_name">${orderRecords.records[i].items[j].title}${orderRecords.records[i].items[j].is_gift ? ' · Подарок (0 ₽)' : ''}</p>
                             </div>
                         </div>
                         <p class="order_product_price">X ${orderRecords.records[i].items[j].count}</p>

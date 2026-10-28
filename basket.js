@@ -1,3 +1,9 @@
+function escapeBasketText(value) {
+    return String(value ?? '').replace(/[&<>"']/g, char => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+    })[char]);
+}
+
 async function get_basket() {
     const post_get_basketData = {
         bot_id: bot_id,
@@ -13,6 +19,7 @@ async function get_basket() {
         })
 
         const jsonData = await response.json();
+        if (!response.ok) throw new Error(jsonData.error || 'Не удалось загрузить корзину');
 
         basketMainList = jsonData.data;
         create_basket(jsonData.data);
@@ -42,6 +49,7 @@ async function addProduct(product_id, pickupPointId) { // добавить 1 т�
         });
 
         const jsonData = await response.json();
+        if (!response.ok) throw new Error(jsonData.error || 'Не удалось изменить корзину');
 
         basketMainList = jsonData.data;
         create_basket(jsonData.data);
@@ -72,6 +80,7 @@ async function removeProduct(product_id, pickupPointId, count = 1) { // убра
         });
 
         const jsonData = await response.json();
+        if (!response.ok) throw new Error(jsonData.error || 'Не удалось изменить корзину');
 
         basketMainList = jsonData.data;
         create_basket(jsonData.data);
@@ -140,6 +149,7 @@ function basketCartManagement(basket_list) {
 
     let products = document.getElementsByClassName('basket_product');
     for (let i = 0; i < products.length; i++) {
+        if (products[i].classList.contains('basket-gift')) continue;
         let minus = products[i].getElementsByClassName('basket_product_minus')[0];
         let plus = products[i].getElementsByClassName('basket_product_plus')[0];
         let trash = products[i].getElementsByClassName('basket_product_trash')[0];
@@ -164,7 +174,8 @@ function basketCartManagement(basket_list) {
         // Сохраняем обработчики для последующего удаления
         basketHandlers.push(
             { element: plus, listener: plusHandler },
-            { element: minus, listener: minusHandler }
+            { element: minus, listener: minusHandler },
+            { element: trash, listener: trashHandler }
         );
     }
 }
@@ -207,6 +218,7 @@ function cartManagement(pickupPointData) { //Манипуляция количе
 
 function editCartProductCount(basket_list) {
     for (let i = 0; i < basket_list.items.length; i++) {
+        if (basket_list.items[i].is_gift) continue;
         let cartProduct = document.getElementById(`basket_${basket_list.items[i].catalog_id}`);
         if (basket_list.items[i].available_count <= basket_list.items[i].count) {
             cartProduct.getElementsByClassName('basket_product_plus')[0].classList.add('disactive');
@@ -240,19 +252,20 @@ async function create_basket(basket_list) { //Генерация корзины
             let basket_product = document.createElement('article');
             basket_product_list.append(basket_product);
             basket_product.outerHTML = `
-                    <article class="basket_product" id="basket_${parseInt(basket_list['items'][i]['catalog_id'])}">
+                    <article class="basket_product ${basket_list.items[i].is_gift ? 'basket-gift' : ''}" id="basket_${basket_list.items[i].is_gift ? 'gift_' : ''}${parseInt(basket_list['items'][i]['catalog_id'])}">
                         <div class="container">
-                            <img src="${url + basket_list['items'][i]['image200']}?t=${Date.now()}" class="basket_product_img" loading="lazy" fetchpriority="auto" aria-hidden="true" draggable="false" style="object-fit: contain; object-position: 50% 50%;">
+                            ${basket_list.items[i].image200 ? `<img src="${escapeBasketText(url + basket_list.items[i].image200)}?t=${Date.now()}" class="basket_product_img" loading="lazy" fetchpriority="auto" aria-hidden="true" draggable="false" style="object-fit: contain; object-position: 50% 50%;">` : ''}
                         </div>
                         <div class="basket_product_info">
-                            <p class="basket_product_name">${basket_list['items'][i]['title']}</p>
+                            <p class="basket_product_name">${escapeBasketText(basket_list['items'][i]['title'])}</p>
+                            ${basket_list.items[i].is_gift ? '<p class="basket-gift-label">Подарок · количество рассчитывается автоматически</p>' : ''}
                             <div class="basket_product_price_info">
                                 <p class="basket_product_price">${basket_list['items'][i]['price']} ₽</p>
                             </div>
                             <svg class="basket_product_trash" width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
                                 <path d="M8.9375 28C8.21563 28 7.59744 27.7387 7.08294 27.216C6.56844 26.6933 6.31163 26.0658 6.3125 25.3333V8H6C5.44772 8 5 7.55228 5 7C5 6.44772 5.44772 6 6 6H11.5625V5C11.5625 4.44772 12.0102 4 12.5625 4H18.4375C18.9898 4 19.4375 4.44772 19.4375 5V6H25C25.5523 6 26 6.44772 26 7C26 7.55228 25.5523 8 25 8H24.6875V25.3333C24.6875 26.0667 24.4303 26.6947 23.9158 27.2173C23.4013 27.74 22.7835 28.0009 22.0625 28H8.9375ZM22.7158 8H8.5V26L22.7158 26V8ZM12 21.6667C12 22.219 12.4477 22.6667 13 22.6667C13.5523 22.6667 14 22.219 14 21.6667V11.6667C14 11.1144 13.5523 10.6667 13 10.6667C12.4477 10.6667 12 11.1144 12 11.6667V21.6667ZM17 21.6667C17 22.219 17.4477 22.6667 18 22.6667C18.5523 22.6667 19 22.219 19 21.6667V11.6667C19 11.1144 18.5523 10.6667 18 10.6667C17.4477 10.6667 17 11.1144 17 11.6667V21.6667Z" fill="#454545"/>
                             </svg>
-                            <div class="basket_product_count hide">${basket_list['items'][i]['available_count']}</div>
+                            <div class="basket_product_count hide">${basket_list.items[i].is_gift ? '' : basket_list['items'][i]['available_count']}</div>
                             <div class="basket_product_add">
                                 <svg class="basket_product_minus" width="14" height="2" viewBox="0 0 14 2"
                                     fill="none" xmlns="http://www.w3.org/2000/svg">
