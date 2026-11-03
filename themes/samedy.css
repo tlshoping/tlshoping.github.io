@@ -1,0 +1,222 @@
+@font-face { font-family: Manrope; font-style: normal; font-weight: 500; font-display: swap; src: url("samedy/fonts/manrope-cyrillic-500.woff2") format("woff2"); unicode-range: U+0400-052F; }
+@font-face { font-family: Manrope; font-style: normal; font-weight: 500; font-display: swap; src: url("samedy/fonts/manrope-latin-500.woff2") format("woff2"); unicode-range: U+0000-024F; }
+@font-face { font-family: Manrope; font-style: normal; font-weight: 700; font-display: swap; src: url("samedy/fonts/manrope-cyrillic-700.woff2") format("woff2"); unicode-range: U+0400-052F; }
+@font-face { font-family: Manrope; font-style: normal; font-weight: 700; font-display: swap; src: url("samedy/fonts/manrope-latin-700.woff2") format("woff2"); unicode-range: U+0000-024F; }
+@font-face { font-family: Manrope; font-style: normal; font-weight: 800; font-display: swap; src: url("samedy/fonts/manrope-cyrillic-800.woff2") format("woff2"); unicode-range: U+0400-052F; }
+@font-face { font-family: Manrope; font-style: normal; font-weight: 800; font-display: swap; src: url("samedy/fonts/manrope-latin-800.woff2") format("woff2"); unicode-range: U+0000-024F; }
+@font-face { font-family: Unbounded; font-style: normal; font-weight: 700; font-display: swap; src: url("samedy/fonts/unbounded-cyrillic-700.woff2") format("woff2"); unicode-range: U+0400-052F; }
+@font-face { font-family: Unbounded; font-style: normal; font-weight: 700; font-display: swap; src: url("samedy/fonts/unbounded-latin-700.woff2") format("woff2"); unicode-range: U+0000-024F; }
+@font-face { font-family: Unbounded; font-style: normal; font-weight: 900; font-display: swap; src: url("samedy/fonts/unbounded-cyrillic-900.woff2") format("woff2"); unicode-range: U+0400-052F; }
+@font-face { font-family: Unbounded; font-style: normal; font-weight: 900; font-display: swap; src: url("samedy/fonts/unbounded-latin-900.woff2") format("woff2"); unicode-range: U+0000-024F; }
+
+html[data-shop-theme="Samedy"] {
+    color-scheme: dark;
+    --s-bg: #101010;
+    --s-panel: #1a1a1a;
+    --s-input: #080808;
+    --s-line: #2e2e2e;
+    --s-yellow: #ffd52a;
+    --s-red: #f32119;
+    --s-text: #f4f1eb;
+    --s-muted: #a8a8a8;
+}
+html[data-shop-theme="Samedy"] :is(body, main, .top, .cart, .cart_product, .cart_category, .map_page, .search_map) {
+    background: var(--s-bg);
+    color: var(--s-text);
+}
+html[data-shop-theme="Samedy"] body {
+    font-family: Manrope, system-ui, sans-serif;
+    font-size: 15px;
+    font-weight: 500;
+}
+html[data-shop-theme="Samedy"] main {
+    height: calc(100dvh - 64px - env(safe-area-inset-bottom));
+}
+html[data-shop-theme="Samedy"] :is(button, input, textarea, select, pre) { font-family: inherit; }
+html[data-shop-theme="Samedy"] :is(a, .search_but, .choice_point_name, .choice_time_name) { color: var(--s-yellow); }
+html[data-shop-theme="Samedy"] :is(.pickup_list_name, .profile_name, .basket_name, .form_name, .orders_title, .rules_name_title, .help_name_title) {
+    font-family: Unbounded, sans-serif;
+    font-weight: 900;
+    font-size: 24px;
+    line-height: 1.15;
+    text-transform: uppercase;
+    letter-spacing: -.01em;
+}
+html[data-shop-theme="Samedy"] .pickup_list_name { font-size: 22px; margin-bottom: 24px; }
+html[data-shop-theme="Samedy"] .form_name { font-size: 20px; }
+html[data-shop-theme="Samedy"] :is(.category_name, .name, .cart_name) { font-weight: 800; }
+html[data-shop-theme="Samedy"] :is(.discript, .basket_adress, .address_header_description, .user_url, .order_product_name,
+    .form_adress_discription, .basket_empty_add, .result_text, .pay_text, .hour_prepayment,
+    .choice_adress_name, .label_phone, .label_telegram, .label_apartment, .label_entrance,
+    .label_floor, .label_doorphone, .label_comment, .form_adress_edit, .search_part) { color: var(--s-muted); }
+html[data-shop-theme="Samedy"] :is(.category, .product, .basket_product, .profile_info, .choice, .choice_adress,
+    .date_selection_container, .gift-panel, .prepayment_help, .courier_availability_status, .error_notification) {
+    background: var(--s-panel);
+    color: var(--s-text);
+    border: 1px solid var(--s-line);
+    border-radius: 8px;
+}
+html[data-shop-theme="Samedy"] :is(.category, .product, .basket_product) { padding: 12px; box-sizing: border-box; }
+html[data-shop-theme="Samedy"] .basket_product { margin-top: 12px; gap: 14px; }
+html[data-shop-theme="Samedy"] .basket_product_info { min-width: 0; }
+html[data-shop-theme="Samedy"] .basket_product_name { font-size: 15px; font-weight: 800; }
+html[data-shop-theme="Samedy"] :is(.price, .basket_product_price, .result_text_sum, .pay_text_sum,
+    .balance, .order_full_price, .cart_price) {
+    color: var(--s-yellow);
+    font-family: Unbounded, sans-serif;
+    font-weight: 900;
+}
+html[data-shop-theme="Samedy"] :is(.balance, .result_text_sum) { font-size: 24px; }
+html[data-shop-theme="Samedy"] .user_name {
+    font-family: Unbounded, sans-serif;
+    font-size: 20px;
+    font-weight: 900;
+    overflow-wrap: anywhere;
+}
+html[data-shop-theme="Samedy"] .profile_body { margin: 20px 16px 0; }
+html[data-shop-theme="Samedy"] .profile_info { overflow: hidden; }
+html[data-shop-theme="Samedy"] :is(.orders_but, .help_but, .rules_but) {
+    border-color: var(--s-line);
+    background: var(--s-panel);
+    padding: 14px;
+    min-height: 60px;
+    box-sizing: border-box;
+}
+html[data-shop-theme="Samedy"] :is(.orders_name, .help_name, .rules_name) { font-size: 15px; font-weight: 700; }
+html[data-shop-theme="Samedy"] :is(input:not([type="checkbox"]):not([type="file"]), textarea, select) {
+    background: var(--s-input) !important;
+    color: var(--s-text);
+    border: 1.5px solid var(--s-line);
+    border-radius: 4px;
+    min-height: 48px;
+    font-size: 16px;
+    padding: 12px 14px;
+    box-sizing: border-box;
+}
+html[data-shop-theme="Samedy"] :is(input, textarea)::placeholder { color: #8c8c8c; }
+html[data-shop-theme="Samedy"] :is(input, textarea):focus { border-color: var(--s-yellow); }
+html[data-shop-theme="Samedy"] .contact_inputs input { padding-top: 20px; }
+html[data-shop-theme="Samedy"] :is(.pay_but, .result_but, .check_promocode, .save_category,
+    .save_category_change, .basket_empty_cataloge_but, .choice_close, .choice_adress_close,
+    .choice_delivery_close, .map_select_adress, .address_notification_select, .address_question_yes,
+    .gift-primary, .save_bulk_price, .save_bulk_description) {
+    background: var(--s-yellow);
+    color: var(--s-input);
+    border: 2px solid var(--s-input);
+    border-radius: 4px;
+    min-height: 52px;
+    box-sizing: border-box;
+    box-shadow: 4px 4px 0 var(--s-red);
+    font-weight: 800;
+}
+html[data-shop-theme="Samedy"] :is(.pay_but_text, .result_but_text, .check_promocode_text,
+    .save_category_text, .basket_empty_cataloge_but_text) { color: var(--s-input); font-size: 15px; font-weight: 800; }
+html[data-shop-theme="Samedy"] :is(.gift-button, .address_notification_later, .address_question_no) {
+    background: var(--s-input);
+    color: var(--s-text);
+    border-color: var(--s-line);
+}
+html[data-shop-theme="Samedy"] .gift-primary { background: var(--s-yellow); color: var(--s-input); }
+html[data-shop-theme="Samedy"] :is(.gift-hint, .gift-empty, .gift-notice) { color: var(--s-muted); background: var(--s-input); }
+html[data-shop-theme="Samedy"] .basket-gift-label { color: var(--s-yellow); }
+html[data-shop-theme="Samedy"] :is(.hour, .transfer, .cash, .online, .choice_pickup, .choice_courier) {
+    background: var(--s-input);
+    color: var(--s-text);
+    border: 2px solid var(--s-line);
+    border-radius: 8px;
+}
+html[data-shop-theme="Samedy"] :is(.hour_active, .input_active) { border-color: var(--s-yellow); box-shadow: none; }
+html[data-shop-theme="Samedy"] .method_toggle { background: var(--s-input); border: 1px solid var(--s-line); border-radius: 999px; }
+html[data-shop-theme="Samedy"] :is(.method_delivery, .method_pickup) { border-radius: 999px; color: var(--s-muted); }
+html[data-shop-theme="Samedy"] .method_selected { background: var(--s-text); color: var(--s-input); }
+html[data-shop-theme="Samedy"] :is(.basket_product_add, .cart_add) {
+    background: var(--s-input); border: 1.5px solid var(--s-line); border-radius: 999px; color: var(--s-text);
+}
+html[data-shop-theme="Samedy"] :is(.basket_product_plus, .basket_product_minus, .cart_plus, .cart_minus) { color: var(--s-yellow); }
+html[data-shop-theme="Samedy"] :is(.basket_product_add_text, .cart_add_text) { color: var(--s-text); }
+html[data-shop-theme="Samedy"] :is(.address_header, .main_path, .path, .cart_path, .pay, .order, .full_price_container,
+    .bonuses_container, .gift-stock-row, .gift-promotion-row) { border-color: var(--s-line); }
+html[data-shop-theme="Samedy"] :is(.address_notification, .address_question) { background: var(--s-panel); border-radius: 0 0 8px 8px; }
+html[data-shop-theme="Samedy"] .pickup_container {
+    background: var(--s-input) !important;
+    background-image: radial-gradient(circle, #ffffff29 1.1px, transparent 1.5px) !important;
+    background-size: 6px 6px !important;
+    border: 2px solid var(--s-text);
+    border-radius: 8px;
+    box-shadow: 4px 4px 0 var(--s-red);
+}
+html[data-shop-theme="Samedy"] .pickup_icon { display: none; }
+html[data-shop-theme="Samedy"] .icon_container::before {
+    content: ""; display: block; width: 104px; height: 40px;
+    background: url("samedy/assets/samedy-logo.svg") center / contain no-repeat;
+}
+html[data-shop-theme="Samedy"] .delivery_price {
+    font-family: Unbounded, sans-serif; font-weight: 900; font-size: 10px;
+    color: var(--s-input); background: var(--s-yellow); border: 2px solid var(--s-input);
+    outline: 3px solid var(--s-text); transform: rotate(-4deg); border-radius: 4px;
+}
+html[data-shop-theme="Samedy"] .basket_empty_svg { display: none; }
+html[data-shop-theme="Samedy"] .basket_empty::before {
+    content: ""; display: block; order: 1; width: min(75vw, 280px); height: 265px;
+    background: url("samedy/assets/baron-hat-in-hand.webp") center / contain no-repeat;
+    margin: 24px 0;
+}
+html[data-shop-theme="Samedy"] .basket_empty_title { font-family: Unbounded, sans-serif; font-size: 20px; font-weight: 900; text-align: center; }
+html[data-shop-theme="Samedy"] :is(.basket_empty_add, .basket_empty_cataloge_but) { order: 2; }
+html[data-shop-theme="Samedy"] footer {
+    background: var(--s-input); border-top: 1px solid var(--s-line);
+    height: calc(64px + env(safe-area-inset-bottom)); padding-bottom: env(safe-area-inset-bottom); box-sizing: border-box;
+}
+html[data-shop-theme="Samedy"] footer nav {
+    position: relative; flex: 1; width: auto; font-size: 11px; font-weight: 700; color: var(--s-muted);
+}
+html[data-shop-theme="Samedy"] footer nav.active { color: var(--s-text); }
+html[data-shop-theme="Samedy"] footer nav > p { color: inherit; font-size: 11px; font-weight: 700; }
+html[data-shop-theme="Samedy"] footer nav.active::after {
+    content: ""; position: absolute; left: 30%; right: 30%; top: -1px; height: 3px; background: var(--s-yellow);
+}
+html[data-shop-theme="Samedy"] footer nav > svg { display: none; }
+html[data-shop-theme="Samedy"] footer nav::before {
+    content: ""; width: 24px; height: 24px; background: currentColor; margin-bottom: 3px;
+    mask: var(--s-icon) center / contain no-repeat;
+    -webkit-mask: var(--s-icon) center / contain no-repeat;
+}
+html[data-shop-theme="Samedy"] footer .main_page_but { --s-icon: url("samedy/icons/home.svg"); }
+html[data-shop-theme="Samedy"] footer .basket_but { --s-icon: url("samedy/icons/bag-cart.svg"); }
+html[data-shop-theme="Samedy"] footer .profile_but { --s-icon: url("samedy/icons/profile-baron.svg"); }
+html[data-shop-theme="Samedy"] footer .admin_but { --s-icon: url("samedy/icons/orders-list.svg"); }
+html[data-shop-theme="Samedy"] footer nav.active::before { background: var(--s-yellow); }
+html[data-shop-theme="Samedy"] .basket_count { background: #e0140c; color: #fff; }
+html[data-shop-theme="Samedy"] :is(.profile_svg, .category_back, .address_header_box, .form_adress_edit, .search_svg,
+    .basket_product_plus, .basket_product_minus, .cart_plus, .cart_minus, .date_form_delivery, .date_form_pickup) {
+    color: var(--s-yellow);
+}
+html[data-shop-theme="Samedy"] :is(.profile_svg, .category_back, .address_header_box, .form_adress_edit,
+    .basket_product_plus, .basket_product_minus, .cart_plus, .cart_minus) [stroke]:not([stroke="none"]) { stroke: currentColor; }
+html[data-shop-theme="Samedy"] :is(.profile_svg, .basket_product_plus, .basket_product_minus, .cart_plus, .cart_minus)
+    [fill]:not([fill="none"]) { fill: currentColor; }
+html[data-shop-theme="Samedy"] .method_selected svg [stroke] { stroke: var(--s-input); }
+html[data-shop-theme="Samedy"] .method_selected svg [fill]:not([fill="none"]) { fill: var(--s-input); }
+html[data-shop-theme="Samedy"] .loading { background: var(--s-bg); }
+html[data-shop-theme="Samedy"] :is(.basket_product_plus, .basket_product_minus, .cart_plus, .cart_minus) { stroke: var(--s-yellow); }
+html[data-shop-theme="Samedy"] :is(.search_container, .search_box, .search_map_contaner) {
+    background: var(--s-input); border-color: var(--s-line); border-radius: 4px;
+}
+html[data-shop-theme="Samedy"] .search_menu { border-color: var(--s-line); }
+html[data-shop-theme="Samedy"] :is(.orders_but, .help_but, .rules_but) > svg path { stroke: var(--s-muted); }
+html[data-shop-theme="Samedy"] :is(.orders_back, .help_back, .rules_back, .form_back) path { stroke: var(--s-yellow); }
+html[data-shop-theme="Samedy"] :is(.map_select_adress_text, .address_notification_select, .address_question_yes) {
+    color: var(--s-input); font-weight: 800;
+}
+html[data-shop-theme="Samedy"] :is(.close_search_map_but, .delivery_notification_container) {
+    background: var(--s-panel); color: var(--s-text);
+}
+html[data-shop-theme="Samedy"] .map_geocode { font-size: 20px; text-shadow: 0 2px 4px #000; }
+html[data-shop-theme="Samedy"] .disactive_but { opacity: .45; box-shadow: none; }
+html[data-shop-theme="Samedy"] .spinner { border-color: var(--s-line); border-top-color: var(--s-yellow); }
+html[data-shop-theme="Samedy"] .rules_body > pre { font-family: Manrope, sans-serif; }
+html[data-shop-theme="Samedy"] :is(.hide, footer nav.hide) { display: none !important; }
+@media (max-width: 420px) {
+    html[data-shop-theme="Samedy"] :is(.user_name, .category_name) { font-size: 17px; }
+    html[data-shop-theme="Samedy"] .balance { font-size: 20px; }
+}

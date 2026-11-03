@@ -3,6 +3,7 @@
 // и TL Shop, и Plug Shop без правок в разметке.
 
 const SHOP_INFO_DEFAULTS = {
+    theme: 'TL',
     display_name: 'Магазин',
     bot_username: null,
     chat_url: null,
@@ -159,6 +160,7 @@ ${renderShopContacts(shop)}`;
 }
 
 function applyShopInfo(shop) {
+    applyShopTheme(shop.theme);
     document.title = shop.display_name;
 
     const rulesText = document.getElementById('rulesText');
