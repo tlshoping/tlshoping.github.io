@@ -258,6 +258,7 @@ async function create_basket(basket_list) { //Генерация корзины
                         </div>
                         <div class="basket_product_info">
                             <p class="basket_product_name">${escapeBasketText(basket_list['items'][i]['title'])}</p>
+                            ${!basket_list.items[i].is_gift && basket_list.items[i].description ? `<p class="basket_product_description">${escapeBasketText(basket_list.items[i].description)}</p>` : ''}
                             ${basket_list.items[i].is_gift ? '<p class="basket-gift-label">Подарок · количество рассчитывается автоматически</p>' : ''}
                             <div class="basket_product_price_info">
                                 <p class="basket_product_price">${basket_list['items'][i]['price']} ₽</p>

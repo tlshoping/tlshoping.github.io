@@ -792,6 +792,10 @@ main::-webkit-scrollbar {
     font-size: 14px;
 }
 
+.basket_product_description {
+    display: none;
+}
+
 .basket_product_price {
     font-size: 20px;
     font-weight: 500;
