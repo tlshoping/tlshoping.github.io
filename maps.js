@@ -1,8 +1,9 @@
 centerCords = [];
 
 let map;
-let router;
 let mapInitPromise;
+let nearestPointRevision = 0;
+const ROUTE_REQUEST_TIMEOUT_MS = 10000;
 
 const MAP_SELECT_ADDRESS_LOADING_TEXT = 'Определяем адрес...';
 const MAP_SELECT_ADDRESS_READY_TEXT = 'Я здесь';
@@ -143,7 +144,7 @@ async function getAddressByCoordsForMap(longitude, latitude) {
 async function setMapCenter(latitude, longitude) {
     const readyMap = await ensureMapInitialized();
 
-    readyMap.setCenter([latitude, longitude]); // Яндекс.Карты используют порядок [долгота, широта]
+    readyMap.setCenter([latitude, longitude]); // Яндекс.Карты используют порядок [широта, долгота].
     readyMap.setZoom(17); // Увеличиваем масштаб для лучшего обзора
 
 }
@@ -174,9 +175,9 @@ function createAddressSearchResponse(response) {
         addressSearchResponses[i].addEventListener('click', () => {
             hideAll();
             mapPage.classList.remove('hide');
-            centerCords = (response.GeoObjectCollection.featureMember[i].GeoObject.Point.pos).split(' ').map(parseFloat);
+            centerCords = (response.GeoObjectCollection.featureMember[i].GeoObject.Point.pos).split(' ').map(Number).reverse();
 
-            setMapCenter(centerCords[1], centerCords[0]);
+            setMapCenter(centerCords[0], centerCords[1]);
         });
     };
 
@@ -269,83 +270,124 @@ function requestGeolocation() {
     }
 }
 
-async function setRouter(fromLongitude, fromLatitude, toLongitude, toLatitude) {
-    const readyMap = await ensureMapInitialized();
+function normalizeMapCoordinates(first, second) {
+    // Keep the legacy API order: these arguments are [latitude, longitude].
+    if (!['number', 'string'].includes(typeof first) || String(first).trim() === ''
+        || !['number', 'string'].includes(typeof second) || String(second).trim() === '') return null;
+    const latitude = Number(first);
+    const longitude = Number(second);
+    if (!Number.isFinite(latitude) || !Number.isFinite(longitude)
+        || Math.abs(latitude) > 90 || Math.abs(longitude) > 180) return null;
+    return [latitude, longitude];
+}
 
+function distanceBetweenMapCoordinates(from, to) {
+    const radians = value => value * Math.PI / 180;
+    const deltaLatitude = radians(to[0] - from[0]);
+    const deltaLongitude = radians(to[1] - from[1]);
+    const h = Math.sin(deltaLatitude / 2) ** 2
+        + Math.cos(radians(from[0])) * Math.cos(radians(to[0])) * Math.sin(deltaLongitude / 2) ** 2;
+    return 6371000 * 2 * Math.asin(Math.sqrt(Math.min(1, Math.max(0, h))));
+}
+
+function setRouter(fromLongitude, fromLatitude, toLongitude, toLatitude) {
+    const from = normalizeMapCoordinates(fromLongitude, fromLatitude);
+    const to = normalizeMapCoordinates(toLongitude, toLatitude);
+    if (!from || !to) return Promise.resolve(null);
     return new Promise((resolve, reject) => {
-        // Удаляем предыдущий маршрут, если он есть
-        if (router) {
-            readyMap.geoObjects.remove(router);
-        }
-
-        router = new ymaps.multiRouter.MultiRoute({
-            referencePoints: [
-                [fromLongitude, fromLatitude],
-                [toLongitude, toLatitude]
-            ],
-            params: {
-                routingMode: 'masstransit'
+        let route;
+        let settled = false;
+        const finish = (value, error) => {
+            if (settled) return;
+            settled = true;
+            clearTimeout(timeout);
+            if (route) {
+                // Each request owns its route, so simultaneous requests cannot read each other's result.
+                try {
+                    route.model.events.remove('requestsuccess', onSuccess);
+                    route.model.events.remove('requestfail', onFailure);
+                    if (typeof route.destroy === 'function') route.destroy();
+                } catch (_) {}
             }
-        }, {
-            boundsAutoApply: false
-        });
-
-        // Обработчик успешного построения маршрута
-        router.model.events.add('requestsuccess', function () {
-            const routes = router.getRoutes();
-
-            if (routes.getLength() > 0) {
-                const firstRoute = routes.get(0);
-                const value = firstRoute.properties.get('duration').value;
-                resolve(value); // Возвращаем время в пути
-            } else {
-                console.log("Маршрут не найден.");
-                resolve(null);
+            if (error) reject(error);
+            else resolve(value);
+        };
+        const onSuccess = () => {
+            try {
+                const activeRoute = route.getActiveRoute() || route.getRoutes().get(0);
+                const raw = activeRoute?.properties.get('duration')?.value;
+                const value = raw === null || raw === undefined || raw === '' ? NaN : Number(raw);
+                finish(Number.isFinite(value) && value >= 0 ? value : null);
+            } catch (error) {
+                finish(null, error);
             }
-        });
-
-        // Обработчик ошибки
-        router.model.events.add('requestfail', function () {
-            console.log("Ошибка при построении маршрута");
-            reject(new Error("Ошибка при построении маршрута"));
+        };
+        const onFailure = () => finish(null, new Error('Сервис маршрутизации Яндекс.Карт отклонил запрос'));
+        const timeout = setTimeout(() => finish(null, new Error('Истекло время ожидания маршрута Яндекс.Карт')), ROUTE_REQUEST_TIMEOUT_MS);
+        // The timeout also covers loading the Maps SDK.
+        ensureMapInitialized().then(() => {
+            if (settled) return;
+            route = new ymaps.multiRouter.MultiRoute({
+                referencePoints: [from, to],
+                params: { routingMode: 'auto' }
+            }, { boundsAutoApply: false });
+            route.model.events.add('requestsuccess', onSuccess);
+            route.model.events.add('requestfail', onFailure);
+        }).catch(error => {
+            finish(null, error);
         });
     });
 }
 
 async function getNearestPoint(toLongitude, toLatitude) {
+    const revision = ++nearestPointRevision;
     try {
-
-        await ensureMapInitialized();
-
-        noDelivery.classList.add('hide');
-        formNoDelivery.classList.add('hide');
-
-        pickupPointsDataSort = JSON.parse(JSON.stringify(pickupPointsData));
-
-        if (await isPointInPolygon(toLatitude, toLongitude, polygon)) {
-            // Перебираем все точки и строим маршруты последовательно
-            for (let i = 0; i < pickupPointsData.length; i++) {
-                const time = await setRouter(
-                    pickupPointsDataSort[i].longitude,
-                    pickupPointsDataSort[i].latitude,
-                    toLongitude,
-                    toLatitude
-                );
-
-                pickupPointsDataSort[i].time = await time;
-            }
-
-            // Находим ближайшую точку (с минимальным временем)
-            pickupPointsDataSort = await pickupPointsDataSort.sort((a, b) => a.time - b.time);
-
-            pickupPointsManage(pickupPointsDataSort, 'sort')
-        } else {
+        const destination = normalizeMapCoordinates(toLongitude, toLatitude);
+        if (!destination || !isPointInPolygon(destination[1], destination[0], polygon)) {
+            pickupPointsDataSort = undefined;
             noDelivery.classList.remove('hide');
             formNoDelivery.classList.remove('hide');
             pickupPointsManage(pickupPointsData);
-        };
+            return;
+        }
 
+        const points = (pickupPointsData || []).filter(point => point.is_active).map(point => {
+            const coordinates = normalizeMapCoordinates(point.longitude, point.latitude);
+            return {
+                ...point, time: null,
+                distance: coordinates ? distanceBetweenMapCoordinates(coordinates, destination) : Infinity
+            };
+        });
+        let nextIndex = 0;
+        const worker = async () => {
+            while (nextIndex < points.length && revision === nearestPointRevision) {
+                const point = points[nextIndex++];
+                try {
+                    point.time = await setRouter(point.longitude, point.latitude, destination[0], destination[1]);
+                } catch (_) {
+                    point.time = null;
+                }
+            }
+        };
+        await Promise.all(Array.from({ length: Math.min(2, points.length) }, worker));
+        if (revision !== nearestPointRevision) return;
+
+        const routesUnavailable = points.some(point => !Number.isFinite(point.time));
+        if (routesUnavailable) {
+            // Do not compare seconds with metres or treat a missing route as zero seconds.
+            points.sort((a, b) => a.distance - b.distance);
+            console.warn('Часть маршрутов недоступна. Магазины отсортированы по расстоянию по прямой.');
+        } else {
+            points.sort((a, b) => a.time - b.time || a.distance - b.distance);
+        }
+        pickupPointsDataSort = points;
+        noDelivery.classList.add('hide');
+        formNoDelivery.classList.add('hide');
+        pickupPointsManage(pickupPointsDataSort, 'sort');
     } catch (error) {
+        if (revision !== nearestPointRevision) return;
+        pickupPointsDataSort = undefined;
+        pickupPointsManage(pickupPointsData);
         console.error("Ошибка в getNearestPoint:", error);
     }
 }
@@ -362,23 +404,19 @@ function pickupPointsManage(pickupPointsList, type) { // Генерация то
     for (let i = 0; i < pickupElementsList.length;) {
         pickupElementsList[0].remove();
     }
-    for (let i = 0; i < pickupPointsList.length; i++) {
-
-        if (!pickupPointsList[i].is_active) {
-            continue;
-        }
+    const visiblePoints = pickupPointsList.filter(point => point.is_active);
+    for (let i = 0; i < visiblePoints.length; i++) {
 
         let deliveryPriceView = 'hide';
         console.log(pickupPointsDataSort);
         let deliveryPrice = 0;
         if (type == 'sort') {
-            console.log(pickupPointsDataSort);
             deliveryPriceView = ''
-            pickupPointsDataSort[i].delivery_price = parseFloat(pickupPointsDataSort[i].delivery_full_price);
-            deliveryPrice = parseFloat(pickupPointsDataSort[i].delivery_full_price) - parseFloat(pickupPointsDataSort[i].delivery_discounted_price);
+            visiblePoints[i].delivery_price = parseFloat(visiblePoints[i].delivery_full_price);
+            deliveryPrice = parseFloat(visiblePoints[i].delivery_full_price) - parseFloat(visiblePoints[i].delivery_discounted_price);
             if (i == 0) {
-                pickupPointsDataSort[i].delivery_price = parseFloat(pickupPointsDataSort[i].delivery_discounted_price);
-                deliveryPrice = parseFloat(pickupPointsDataSort[i].delivery_full_price) - parseFloat(pickupPointsDataSort[i].delivery_discounted_price) - parseFloat(pickupPointsDataSort[i].discount_sum);
+                visiblePoints[i].delivery_price = parseFloat(visiblePoints[i].delivery_discounted_price);
+                deliveryPrice = parseFloat(visiblePoints[i].delivery_full_price) - parseFloat(visiblePoints[i].delivery_discounted_price) - parseFloat(visiblePoints[i].discount_sum);
             }
         }
         
@@ -388,24 +426,18 @@ function pickupPointsManage(pickupPointsList, type) { // Генерация то
             `
         <li class="pickup">
             <p class="delivery_price ${deliveryPriceView}">Доставка ${deliveryPrice}₽</p>
-            <div class="pickup_container" style="background-color: ${pickupPointsList[i].background_color || 'rgb(237, 14, 0)'}">
+            <div class="pickup_container" style="background-color: ${visiblePoints[i].background_color || 'rgb(237, 14, 0)'}">
                 <div class="icon_container">
-                    <img src="${url + pickupPointsList[i].logo}?t=${Date.now()}" class="pickup_icon"
+                    <img src="${url + visiblePoints[i].logo}?t=${Date.now()}" class="pickup_icon"
                         loading="lazy" fetchpriority="auto" aria-hidden="true" draggable="false"
                         style="object-fit: contain; object-position: 50% 50%;"></img>
                 </div>
             </div>
-            <p class="pickup_list_address">${pickupPointsList[i].public_address}</p>
+            <p class="pickup_list_address">${visiblePoints[i].public_address}</p>
         </li>
         `
-        if (type == 'sort') {
-            openPickupPointCatalog(pickupPointsDataSort);
-        } else {
-            openPickupPointCatalog(pickupPointsData);
-        };
-
-
     };
+    openPickupPointCatalog(visiblePoints);
 
     get_basket();
 
@@ -433,17 +465,6 @@ function isPointInPolygon(latitude, longitude, polygon) {
 }
 
 function getPickupPointDataById(id) {
-    if (pickupPointsDataSort === undefined) {
-        for (let i = 0; i < pickupPointsData.length; i++) {
-            if (pickupPointsData[i].id == id) {
-                return pickupPointsData[i];
-            }
-        }
-    } else {
-        for (let i = 0; i < pickupPointsDataSort.length; i++) {
-            if (pickupPointsDataSort[i].id == id) {
-                return pickupPointsDataSort[i];
-            }
-        }
-    }
+    return pickupPointsDataSort?.find(point => point.id == id)
+        || pickupPointsData?.find(point => point.id == id);
 }

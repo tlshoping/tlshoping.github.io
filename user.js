@@ -29,7 +29,9 @@ function get_user(UserPickupPointsData) {
             requestGeolocation();
         } else {
             editAddressHeader(user_data.data.address, user_data.data.adress_description);
-            await setMapCenter(user_data.data.longitude, user_data.data.latitude);
+            setMapCenter(user_data.data.longitude, user_data.data.latitude).catch(() => {
+                console.warn('Карта недоступна. Выбор магазина продолжает работать без неё.');
+            });
             await getNearestPoint(user_data.data.longitude, user_data.data.latitude);
             userCoords = `${user_data.data.latitude} ${user_data.data.longitude}`;
         };
