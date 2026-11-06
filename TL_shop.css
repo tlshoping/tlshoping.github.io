@@ -15,10 +15,11 @@ body {
     font-weight: 400;
     font-style: normal;
     background-color: #ffffff;
+    overflow: hidden;
 }
 
 main {
-    height: calc(100vh - 60px);
+    height: calc(var(--shop-viewport-height, 100dvh) - var(--shop-nav-height));
     overflow: scroll;
     width: 100%;
     background-color: #ffffff;
@@ -27,6 +28,11 @@ main {
     /* Скрыть скроллбар в Firefox */
     -ms-overflow-style: none;
     /* Скрыть скроллбар в IE и Edge */
+}
+
+:root {
+    --shop-safe-area: max(env(safe-area-inset-bottom, 0px), var(--shop-safe-bottom, 0px));
+    --shop-nav-height: calc(60px + var(--shop-safe-area));
 }
 
 main::-webkit-scrollbar {
@@ -1558,7 +1564,7 @@ main::-webkit-scrollbar {
 
 .date_selection_delivery,
 .date_selection_pickup {
-    position: absolute;
+    position: fixed;
     bottom: 0;
     left: 0;
     background-color: rgba(52, 52, 52, .4);
@@ -1567,6 +1573,9 @@ main::-webkit-scrollbar {
     display: flex;
     flex-direction: column;
     justify-content: end;
+    top: var(--shop-viewport-top, 0px);
+    height: var(--shop-viewport-height, 100dvh);
+    z-index: 100;
 }
 
 .date_selection_container {
@@ -1577,6 +1586,10 @@ main::-webkit-scrollbar {
     display: flex;
     flex-direction: column;
     align-items: center;
+    box-sizing: border-box;
+    max-height: 100%;
+    overflow-y: auto;
+    padding-bottom: calc(32px + var(--shop-safe-area));
 }
 
 .date_selection_title {
@@ -2620,4 +2633,51 @@ nav,
     .gift-header h2 { font-size: 18px; }
     .gift-header .gift-button { padding: 9px; }
     .gift-actions .gift-button { width: 100%; }
+}
+
+/* Shared mobile geometry for TL and Samedy. */
+main {
+    top: var(--shop-viewport-top, 0px);
+    box-sizing: border-box;
+    overflow-x: hidden;
+    overflow-y: auto;
+    scroll-padding-bottom: 24px;
+}
+footer {
+    bottom: var(--shop-viewport-bottom, 0px);
+    height: var(--shop-nav-height);
+    padding-bottom: var(--shop-safe-area);
+    box-sizing: border-box;
+    z-index: 20;
+}
+.cart_price_menu,
+.delivery_notification_container {
+    bottom: calc(var(--shop-viewport-bottom, 0px) + var(--shop-nav-height));
+}
+.form_container,
+.basket {
+    padding-bottom: 32px;
+}
+.catalog { padding-bottom: 48px; }
+.cart_product { padding-bottom: 96px; box-sizing: border-box; }
+main:has(.cart:not(.hide) .cart_product:not(.hide) .cart_price_menu) { padding-bottom: 96px; }
+main:has(.catalog:not(.hide) .delivery_notification_container:not(.hide)) { padding-bottom: 48px; }
+.choice_delivery,
+.choice_pickup_adress,
+.choice_delivery_adress {
+    position: fixed;
+    top: var(--shop-viewport-top, 0px);
+    left: 0;
+    height: var(--shop-viewport-height, 100dvh);
+    min-height: 0;
+    justify-content: center;
+    z-index: 100;
+}
+.choice,
+.choice_adress {
+    margin-top: 0;
+    max-height: 100%;
+    overflow-y: auto;
+    box-sizing: border-box;
+    padding-bottom: var(--shop-safe-area);
 }

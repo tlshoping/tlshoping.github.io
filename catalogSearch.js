@@ -1,3 +1,5 @@
+let searchHintsRevision = 0;
+
 async function correctSpelling(botId, pickupPointId, text) {
     try {
         const postData = {
@@ -14,9 +16,10 @@ async function correctSpelling(botId, pickupPointId, text) {
         });
 
         const data = await response.json();
-        return data.data;
+        return Array.isArray(data.data) ? data.data : [];
     } catch (error) {
         console.error('Не удалось получить данные:', error);
+        return [];
     }
 }
 
@@ -55,6 +58,7 @@ function searchGenerator(searchPath, searchRequest, pickupPointData) {
     for (let i = 0; i < pathList.length; i++) {
         const products = findById(common_json_data, parseInt(pathList[i]));
 
+        if (!products) continue;
         if (products.type != 7) {
             SearchCatalogCategoryList.push(...getAllProducts(products));
         } else {
@@ -79,10 +83,10 @@ function searchGenerator(searchPath, searchRequest, pickupPointData) {
     if (path) {
         path.remove();
     } else {
-        mainPath.remove();
+        document.getElementById('mainPath')?.remove();
     };
     cart.classList.add('hide');
-    category_list.remove();
+    category_list?.remove();
     for (let i = 0; i < cart_category.length;) {
         cart_category[0].remove();
     };
@@ -97,6 +101,9 @@ function searchGenerator(searchPath, searchRequest, pickupPointData) {
 };
 
 function search_hints(pickupPointData) {
+    const revision = ++searchHintsRevision;
+    const inputValue = document.querySelector('.search').value;
+    const pointId = pickupPointData.id;
     new Promise((resolve) => {
         search_loading.classList.remove('hide');
         not_found.classList.add('hide');
@@ -128,6 +135,7 @@ function search_hints(pickupPointData) {
 
         } else if (!/^\s*$/.test(search.value)) {
             correctSpelling(0, pickupPointData.id, search.value.toLowerCase()).then(searchResponseList => {
+                if (revision !== searchHintsRevision || search.value !== inputValue) return;
 
                 if (searchResponseList.length > 0) {
                     let directSearchList = [];
@@ -148,7 +156,7 @@ function search_hints(pickupPointData) {
                                     searchBar.append(searchAnswer);
                                     searchAnswer.outerHTML = `<div class="search_answer" id="${searchResponse.id}">
                                     <p class="search_part">${searchResponse.title}</p>
-                                    <p class="search_category_part">- ${searchParentResponse.title}</p>
+                                    <p class="search_category_part">- ${searchParentResponse?.title || ''}</p>
                                 </div>`;
                                 } else {
                                     let searchAnswer = document.createElement('div');
@@ -189,20 +197,22 @@ function search_hints(pickupPointData) {
                         searchBar.append(searchAnswer);
                         searchAnswer.outerHTML = `<div class="search_answer" id="${directSearchList[i].response.join('_')}">
                             <p class="search_part">${directSearchList[i].word}</p>
-                            <p class="search_category_part">- ${searchParentResponse.title}</p>
+                            <p class="search_category_part">- ${searchParentResponse?.title || ''}</p>
                         </div>`;
                     }
                 } else {
                     not_found.classList.remove('hide');
                 }
             }).then(() => {
-                search_loading.classList.add('hide');
+                if (revision === searchHintsRevision) search_loading.classList.add('hide');
                 resolve();
             });
         } else {
+            search_loading.classList.add('hide');
             resolve();
         };
     }).then(() => {
+        if (revision !== searchHintsRevision || pickupPointData.id !== pointId) return;
         let searchAnswersList = document.querySelectorAll('.search_answer');
         for (let i = 0; i < searchAnswersList.length; i++) {
             searchAnswersList[i].addEventListener('click', () => {
@@ -213,6 +223,7 @@ function search_hints(pickupPointData) {
 };
 
 function search_manage(pickupPointData) { // Управление логистикой поиска
+    searchHintsRevision++;
 
     // Отменяем предыдущие обработчики
     if (searchController) {
@@ -240,16 +251,19 @@ function search_manage(pickupPointData) { // Управление логисти
     }, { signal });
 
     searchBut.addEventListener('click', function () {
+        searchHintsRevision++;
         searchBar.classList.remove('show');
         searchLine.classList.remove('show');
         searchInput.classList.remove('show');
         searchBut.classList.remove('show');
         searchSvg.classList.remove('show');
         searchInput.value = '';
+        searchInput.blur();
     }, { signal });
 
     document.addEventListener('click', function (event) {
         if (!searchContainer.contains(event.target) && event.target !== searchBut) {
+            searchHintsRevision++;
             searchBar.classList.remove('show');
             searchLine.classList.remove('show');
             searchInput.classList.remove('show');
@@ -259,10 +273,11 @@ function search_manage(pickupPointData) { // Управление логисти
     }, { signal });
 
     searchInput.addEventListener('input', debounce(() => {
-        search_hints(pickupPointData);
-    }, 1000, { signal }));
+        if (!signal.aborted && searchInput.classList.contains('show')) search_hints(pickupPointData);
+    }, 300), { signal });
 
     searchBar.addEventListener('click', function () {
+        searchHintsRevision++;
         searchBar.classList.remove('show');
         searchLine.classList.remove('show');
         searchInput.classList.remove('show');
@@ -272,6 +287,7 @@ function search_manage(pickupPointData) { // Управление логисти
     }, { signal });
 
     searchInput.addEventListener('search', () => {
+        searchHintsRevision++;
         searchBar.classList.remove('show');
         searchLine.classList.remove('show');
         searchInput.classList.remove('show');
@@ -279,6 +295,8 @@ function search_manage(pickupPointData) { // Управление логисти
         searchSvg.classList.remove('show');
         searchInput.blur();
         const searchAnswersList = document.querySelectorAll('.search_answer')[0];
-        searchGenerator(searchAnswersList.id, searchAnswersList.innerText);
+        if (searchAnswersList) {
+            searchGenerator(searchAnswersList.id, searchAnswersList.innerText, pickupPointData);
+        }
     }, { signal });
 };

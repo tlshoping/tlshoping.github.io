@@ -615,9 +615,10 @@ function show_cart() { //Открытие карточки
     let catalog = document.getElementsByClassName('catalog')[0];
     let cart = document.getElementsByClassName('cart')[0];
     for (let i = 0; i < product.length; i++) {//Открытие карточки продкута
-        let img = product[i].getElementsByClassName('img')[0];
+        let img = product[i].getElementsByClassName('img')[0]
+            || product[i].getElementsByClassName('name')[0];
         let cart_back = cart_product[i].getElementsByClassName('cart_path')[0];
-        img.addEventListener('click', () => {
+        img?.addEventListener('click', () => {
             catalog.classList.add('hide');
             cart.classList.remove('hide');
             for (let j = 0; j < cart_category.length; j++) {
@@ -641,9 +642,10 @@ function show_cart() { //Открытие карточки
     };
     if (user_data.data.status == 'admin' || user_data.data.status == 'manager' || user_data.data.status == 'owner' || user_data.data.status == 'logistician') {
         for (let i = 0; i < category.length; i++) {//Открытие карточки продкута
-            let img = category[i].getElementsByClassName('img')[0];
+            let img = category[i].getElementsByClassName('img')[0]
+                || category[i].getElementsByClassName('name')[0];
             let cart_back = cart_category[i].getElementsByClassName('cart_path')[0];
-            img.addEventListener('click', (event) => {
+            img?.addEventListener('click', (event) => {
                 event.stopPropagation();
                 catalog.classList.add('hide');
                 cart.classList.remove('hide');

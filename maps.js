@@ -2,12 +2,35 @@ centerCords = [];
 
 let map;
 let mapInitPromise;
+const pickupPointMarkers = [];
 let nearestPointRevision = 0;
 const ROUTE_REQUEST_TIMEOUT_MS = 10000;
 
 const MAP_SELECT_ADDRESS_LOADING_TEXT = 'Определяем адрес...';
 const MAP_SELECT_ADDRESS_READY_TEXT = 'Я здесь';
 const MAP_SELECT_ADDRESS_FALLBACK_TEXT = 'Выбрать эту точку';
+
+function pickupPointMarkerOptions(point) {
+    if (document.documentElement.dataset.shopTheme === 'Samedy') {
+        return { preset: 'islands#yellowDotIcon', iconColor: '#ffd52a' };
+    }
+    return {
+        iconLayout: 'default#image',
+        iconImageHref: url + point.icon,
+        iconImageSize: [40, 45],
+        iconImageOffset: [-19, -44]
+    };
+}
+
+document.addEventListener('shop-theme-changed', () => {
+    for (const { marker, point } of pickupPointMarkers) {
+        // Clear custom image overrides so the built-in bright preset can take effect.
+        for (const option of ['iconLayout', 'iconImageHref', 'iconImageSize', 'iconImageOffset', 'preset', 'iconColor']) {
+            marker.options.unset(option);
+        }
+        marker.options.set(pickupPointMarkerOptions(point));
+    }
+});
 
 function setMapSelectAddressState(text = MAP_SELECT_ADDRESS_LOADING_TEXT, isReady = false) {
     mapSelectAdress.classList.remove('hide');
@@ -41,14 +64,10 @@ function init() {
                 balloonContentBody: pickupPointsData[i].public_address,
                 balloonContentFooter: pickupPointsData[i].working_hours,
             },
-            {
-                iconLayout: 'default#image',
-                iconImageHref: url + pickupPointsData[i].icon,
-                iconImageSize: [40, 45],
-                iconImageOffset: [-19, -44]
-            }
+            pickupPointMarkerOptions(pickupPointsData[i])
         );
 
+        pickupPointMarkers.push({ marker: placamark, point: pickupPointsData[i] });
         map.geoObjects.add(placamark);
     };
 
