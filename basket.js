@@ -156,7 +156,13 @@ function basketCartManagement(basket_list) {
         let count = products[i].getElementsByClassName('basket_product_add_text')[0];
 
         const plusHandler = async () => {
-            await addProduct(products[i].id.split('_')[1], basket_list.pickupPointId);
+            if (plus.classList.contains('disactive') || plus.dataset.pending === 'true') return;
+            plus.dataset.pending = 'true';
+            try {
+                await addProduct(products[i].id.split('_')[1], basket_list.pickupPointId);
+            } finally {
+                delete plus.dataset.pending;
+            }
         };
 
         const minusHandler = async () => {
@@ -200,9 +206,11 @@ function cartManagement(pickupPointData) { //Манипуляция количе
             editProductCount(await addProduct(product[i].id, pickupPointData.id), pickupPointData);
         });
         plus.addEventListener('click', async () => {
+            if (plus.classList.contains('disactive')) return;
             editProductCount(await addProduct(product[i].id, pickupPointData.id), pickupPointData);
         });
         cartPlus.addEventListener('click', async () => {
+            if (cartPlus.classList.contains('disactive')) return;
             editProductCount(await addProduct(product[i].id, pickupPointData.id), pickupPointData);
         });
         minus.addEventListener('click', async () => {
@@ -220,13 +228,16 @@ function editCartProductCount(basket_list) {
     for (let i = 0; i < basket_list.items.length; i++) {
         if (basket_list.items[i].is_gift) continue;
         let cartProduct = document.getElementById(`basket_${basket_list.items[i].catalog_id}`);
-        if (basket_list.items[i].available_count <= basket_list.items[i].count) {
-            cartProduct.getElementsByClassName('basket_product_plus')[0].classList.add('disactive');
-        }
+        const plus = cartProduct?.getElementsByClassName('basket_product_plus')[0];
+        const atLimit = Number(basket_list.items[i].count) >= Number(basket_list.items[i].available_count);
+        plus?.classList.toggle('disactive', atLimit);
+        plus?.setAttribute('aria-disabled', String(atLimit));
     };
 };
 
+let basketRenderRevision = 0;
 async function create_basket(basket_list) { //Генерация корзины
+    const revision = ++basketRenderRevision;
     console.log('Вызов функции create_basket() выполнен!');
     let basket_product = document.getElementsByClassName('basket_product');
     for (let i = 0; i < basket_product.length;) {
@@ -274,7 +285,7 @@ async function create_basket(basket_list) { //Генерация корзины
                                 </svg>
                                 </svg>
                                 <p class="basket_product_add_text">${basket_list['items'][i]['count']}</p>
-                                <svg class="basket_product_plus" width="14" height="14" viewBox="0 0 14 14" fill="none"
+                                <svg class="basket_product_plus ${Number(basket_list.items[i].count) >= Number(basket_list.items[i].available_count) ? 'disactive' : ''}" aria-disabled="${Number(basket_list.items[i].count) >= Number(basket_list.items[i].available_count)}" width="14" height="14" viewBox="0 0 14 14" fill="none"
                                     xmlns="http://www.w3.org/2000/svg">
                                     <path d="M7 1V13" stroke-width="2" stroke-linecap="round" />
                                     <path d="M1 7H13" stroke-width="2" stroke-linecap="round" />
@@ -284,6 +295,9 @@ async function create_basket(basket_list) { //Генерация корзины
                     </article>
                     `;
         };
+        // Quantity controls must be ready before asynchronous delivery-hour loading.
+        basketCartManagement(basket_list);
+        editCartProductCount(basket_list);
 
         if (basket_list.methodDelivery) {
             methodDelivery.classList.remove('hide');
@@ -429,6 +443,7 @@ async function create_basket(basket_list) { //Генерация корзины
                     basket_list.pickupPointId,
                     basket_list.reservationInterval
                 );
+                if (revision !== basketRenderRevision) return;
             }
             if (dateSelectionPickup.classList.contains('hide')) {
                 await createHours(
@@ -442,11 +457,13 @@ async function create_basket(basket_list) { //Генерация корзины
                     basket_list.pickupPointId,
                     basket_list.reservationInterval
                 );
+                if (revision !== basketRenderRevision) return;
             }
 
         } catch (error) {
             console.log(error);
         }
+        if (revision !== basketRenderRevision) return;
 
         const lastDigit = basket_list.countItems % 10;
         const lastTwoDigits = basket_list.countItems % 100;
@@ -490,8 +507,7 @@ async function create_basket(basket_list) { //Генерация корзины
     };
     let result_text_sum = document.getElementsByClassName('result_text_sum')[0];
     result_text_sum.textContent = basket_list['sum'] + ' ₽';
-    basketCartManagement(basket_list);
-    editCartProductCount(basket_list);
+    if (!basket_list.items.length) basketCartManagement(basket_list);
 };
 
 async function createHours(intervals, nowDate, date, method, pickupPointId, reservationInterval, timeZone) {

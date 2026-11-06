@@ -5,8 +5,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Магазин</title>
-    <link rel="stylesheet" href="TL_shop.css?v=20261106-mobile2">
-    <link rel="stylesheet" href="themes/samedy.css?v=20261106-mobile2">
+    <link rel="stylesheet" href="TL_shop.css?v=20261107">
+    <link rel="stylesheet" href="themes/samedy.css?v=20261107">
     <link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100..900;1,100..900&display=swap"
         rel="stylesheet">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
@@ -21,7 +21,7 @@
     <div class="top"></div>
     <main>
         <div class="main_page" id="mainPage">
-            <div class="address_notification" id="addressNotification">
+            <div class="address_notification" id="addressNotification" role="dialog" aria-labelledby="addressNotificationText">
                 <p class="address_notification_text" id="addressNotificationText">Укажите адрес доставки</p>
                 <p class="address_notification_discript" id="addressNotificationDiscript">С адресом мы покажем время
                     доставки</p>
@@ -30,7 +30,7 @@
                     <div class="address_notification_select" id="addressNotificationSelect">Указать</div>
                 </div>
             </div>
-            <div class="address_question show hide" id="addressQuestion">
+            <div class="address_question show hide" id="addressQuestion" role="dialog" aria-labelledby="addressQuestionDiscript">
                 <p class="address_question_text">Заказ на этот адрес?</p>
                 <p class="address_question_discript" id="addressQuestionDiscript"></p>
                 <div class="address_notification_container">
@@ -702,8 +702,8 @@
     <script src="catalogSearch.js?v=20261106" defer></script>
     <script src="logistics.js" defer></script>
     <script src="user.js?v=20261105-routing" defer></script>
-    <script src="categories.js?v=20261106" defer></script>
-    <script src="basket.js?v=20261105" defer></script>
+    <script src="categories.js?v=20261107" defer></script>
+    <script src="basket.js?v=20261107" defer></script>
     <script src="admin.js" defer></script>
     <script src="gifts.js" defer></script>
     <script src="order.js" defer></script>

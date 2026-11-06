@@ -24,6 +24,18 @@ async function getCatalog(pickupPointData) {
 }
 
 
+function catalogImageMarkup(imagePath) {
+    if (!imagePath) return '<div class="catalog-image-missing"><span aria-hidden="true">?</span><p>Картинки пока нет</p></div>';
+    const source = String(url + imagePath).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+    return `<img src="${source}?t=${Date.now()}" class="img" loading="lazy" draggable="false" alt="" style="object-fit: contain; object-position: 50% 50%;">`;
+}
+
+function showMissingCatalogImage(image) {
+    if (!image.parentElement || image.parentElement.querySelector('.catalog-image-missing')) return;
+    image.hidden = true;
+    image.parentElement.insertAdjacentHTML('beforeend', catalogImageMarkup(null));
+}
+
 function create_categories(json_data, category_id, type, searchRequest, pickupPointData) { //создание категорий
     if (category_id == 0 && type != 'search') {
         let path = document.createElement('section');
@@ -105,7 +117,7 @@ function create_categories(json_data, category_id, type, searchRequest, pickupPo
                 category.outerHTML = `
                     <article class="category" id="${json_data[i]['id']}">
                         <div class="container">
-                            <img src="${url + json_data[i]['image200']}?t=${Date.now()}" class="img" loading="lazy" fetchpriority="auto" aria-hidden="true" draggable="false" style="object-fit: contain; object-position: 50% 50%;"></img>
+                            ${catalogImageMarkup(json_data[i]['image200'])}
                         </div>
                         <div class="info">
                             <p class="name">${json_data[i]['title']}</p>
@@ -207,7 +219,7 @@ function create_categories(json_data, category_id, type, searchRequest, pickupPo
                     product_count = basket_products_list[json_data[i]['id']];
                     hide_flag = '';
                     hide_none_flag = 'hide';
-                    if (product_count == json_data[i]['count']) {
+                    if (Number(product_count) >= Number(json_data[i]['count'])) {
                         disactive_flag = 'disactive';
                     };
                 };
@@ -222,7 +234,7 @@ function create_categories(json_data, category_id, type, searchRequest, pickupPo
                 product.outerHTML = `
                 <article class="product" id="${json_data[i]['id']}">
                     <div class="container">
-                        <img src="${url + json_data[i]['image200']}?t=${Date.now()}" class="img" loading="lazy" fetchpriority="auto" aria-hidden="true" draggable="false" style="object-fit: contain; object-position: 50% 50%;"></img>
+                        ${catalogImageMarkup(json_data[i]['image200'])}
                     </div>
                     <div class="info">
                         ${parentTitleOuter}
@@ -361,7 +373,7 @@ function create_categories(json_data, category_id, type, searchRequest, pickupPo
                         </svg>
                         <p class="cart_path_name">Карточка продукта</p>
                     </div>
-                    <div class="cart_info">
+                    <div class="cart_info staff-editor">
                         <div class="cart_container">
                             <svg class="cart_img_none" width="1629" height="1629" viewBox="0 0 1629 1629" fill="none" xmlns="http://www.w3.org/2000/svg">
                                 <path d="M773.667 0.466655C742.067 2.73332 726.867 4.19999 709.4 6.46666C531.133 29.4 366.467 110.467 238.467 238.467C118.467 358.467 38.5999 512.733 11.1333 677.667C2.73328 728.333 0.466614 757.8 0.466614 814.333C0.466614 860.467 1.39995 878.733 5.79995 914.333C28.0666 1094.73 109.267 1261.13 238.467 1390.2C362.867 1514.6 523.267 1595.4 695.133 1620.33C740.867 1626.87 761 1628.2 814.333 1628.2C867.667 1628.2 887.8 1626.87 933.533 1620.33C1149 1589.13 1344.6 1470.33 1474.33 1291.67C1547.53 1191 1597.27 1072.47 1617.53 951C1625.93 900.333 1628.2 870.867 1628.2 814.333C1628.2 768.2 1627.27 749.933 1622.87 714.333C1600.6 533.933 1519.4 367.533 1390.2 238.467C1264.73 112.867 1103.4 32.2 929 7.66666C891.667 2.46666 868.867 0.866655 824.333 0.466655C800.2 0.199988 777.4 0.199988 773.667 0.466655ZM878.333 116.333C1043.13 131.8 1193 202.2 1309.67 319C1461 470.2 1534.47 679.8 1510.87 892.333C1495.27 1033 1437 1166.07 1343.8 1273.4L1332.33 1286.6L1327 1280.73C1324.07 1277.53 1197.67 1142.07 1046.2 979.667C894.733 817.267 682.867 589.933 575.267 474.6L379.667 264.733L386.733 259.133C407.267 242.6 445.267 217.667 476.333 200.333C567.933 149.267 677.4 118.467 785 113.8C805 113 857 114.333 878.333 116.333ZM482.333 541.667C578.067 644.333 789.667 871.267 952.6 1046.07L1249 1363.93L1241.93 1369.53C1211.67 1393.93 1156.73 1427.93 1117 1446.73C1040.33 1483 963.667 1504.07 877 1512.47C828.867 1517.13 761 1515.13 710.333 1507.53C561 1484.87 425.933 1416.6 319 1309.67C167.667 1158.47 94.2 948.867 117.8 736.333C133.4 595.667 191.667 462.6 284.867 355.267L296.333 342.067L302.333 348.6C305.667 352.2 386.6 439.133 482.333 541.667Z" fill="#505050"/>
@@ -397,6 +409,10 @@ function create_categories(json_data, category_id, type, searchRequest, pickupPo
     }
     if (user_data.data.status == 'manager' || user_data.data.status == 'logistician') {
         admChangeCategory(pickupPointData);
+    }
+    for (const image of category_list.querySelectorAll('.img')) {
+        image.addEventListener('error', () => showMissingCatalogImage(image), { once: true });
+        if (image.complete && !image.naturalWidth) showMissingCatalogImage(image);
     }
     show_cart();
     mountGiftManagement(pickupPointData);
@@ -527,7 +543,7 @@ function editProductCount(cartData, pickupPointData) {    //Редактиров
                 cartProductList[i].getElementsByClassName('cart_add_text')[0].textContent = cartData.items[j].count;
                 cartProductList[i].getElementsByClassName('cart_plus')[0].classList.remove('hide');
                 cartProductList[i].getElementsByClassName('cart_plus')[0].classList.remove('disactive');
-                if (cartData.items[j].count == cartData.items[j].available_count) {
+                if (Number(cartData.items[j].count) >= Number(cartData.items[j].available_count)) {
                     productsList[i].getElementsByClassName('plus')[0].classList.add('disactive');
                     cartProductList[i].getElementsByClassName('cart_plus')[0].classList.add('disactive');
                 }
@@ -615,7 +631,8 @@ function show_cart() { //Открытие карточки
     let catalog = document.getElementsByClassName('catalog')[0];
     let cart = document.getElementsByClassName('cart')[0];
     for (let i = 0; i < product.length; i++) {//Открытие карточки продкута
-        let img = product[i].getElementsByClassName('img')[0]
+        let img = product[i].getElementsByClassName('container')[0]
+            || product[i].getElementsByClassName('img')[0]
             || product[i].getElementsByClassName('name')[0];
         let cart_back = cart_product[i].getElementsByClassName('cart_path')[0];
         img?.addEventListener('click', () => {
@@ -642,7 +659,8 @@ function show_cart() { //Открытие карточки
     };
     if (user_data.data.status == 'admin' || user_data.data.status == 'manager' || user_data.data.status == 'owner' || user_data.data.status == 'logistician') {
         for (let i = 0; i < category.length; i++) {//Открытие карточки продкута
-            let img = category[i].getElementsByClassName('img')[0]
+            let img = category[i].getElementsByClassName('container')[0]
+                || category[i].getElementsByClassName('img')[0]
                 || category[i].getElementsByClassName('name')[0];
             let cart_back = cart_category[i].getElementsByClassName('cart_path')[0];
             img?.addEventListener('click', (event) => {
