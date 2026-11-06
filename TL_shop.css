@@ -15,12 +15,12 @@ body {
     font-weight: 400;
     font-style: normal;
     background-color: #ffffff;
-    overflow: hidden;
+    overflow: visible;
 }
 
 main {
-    height: calc(var(--shop-viewport-height, 100dvh) - var(--shop-nav-height));
-    overflow: scroll;
+    min-height: calc(var(--shop-viewport-height, 100dvh) - var(--shop-nav-height));
+    overflow: visible;
     width: 100%;
     background-color: #ffffff;
     position: relative;
@@ -2636,12 +2636,32 @@ nav,
 }
 
 /* Shared mobile geometry for TL and Samedy. */
-main {
-    top: var(--shop-viewport-top, 0px);
-    box-sizing: border-box;
-    overflow-x: hidden;
+html {
     overflow-y: auto;
+    scrollbar-width: none;
+    scroll-padding-bottom: calc(var(--shop-nav-height) + var(--shop-viewport-bottom, 0px) + 24px);
+}
+html::-webkit-scrollbar { display: none; }
+body {
+    padding-bottom: calc(var(--shop-nav-height) + var(--shop-viewport-bottom, 0px));
+}
+main {
+    top: 0;
+    height: auto;
+    box-sizing: border-box;
+    overflow: visible;
     scroll-padding-bottom: 24px;
+}
+/* Let WebKit's document scroller paint off-screen inputs and controls normally. */
+.cart,
+.cart_category,
+.cart_product,
+.add_cart {
+    height: auto;
+    overflow: visible;
+}
+.map_page {
+    height: calc(var(--shop-viewport-height, 100dvh) - var(--shop-nav-height));
 }
 footer {
     bottom: var(--shop-viewport-bottom, 0px);

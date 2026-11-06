@@ -9,23 +9,28 @@ const ROUTE_REQUEST_TIMEOUT_MS = 10000;
 const MAP_SELECT_ADDRESS_LOADING_TEXT = 'Определяем адрес...';
 const MAP_SELECT_ADDRESS_READY_TEXT = 'Я здесь';
 const MAP_SELECT_ADDRESS_FALLBACK_TEXT = 'Выбрать эту точку';
+let samedyPickupIconLayout;
 
 function pickupPointMarkerOptions(point) {
-    if (document.documentElement.dataset.shopTheme === 'Samedy') {
-        return { preset: 'islands#yellowDotIcon', iconColor: '#ffd52a' };
-    }
-    return {
+    const options = {
         iconLayout: 'default#image',
         iconImageHref: url + point.icon,
         iconImageSize: [40, 45],
         iconImageOffset: [-19, -44]
     };
+    if (document.documentElement.dataset.shopTheme === 'Samedy' && ymaps.templateLayoutFactory) {
+        samedyPickupIconLayout ||= ymaps.templateLayoutFactory.createClass(
+            '<div class="samedy-pickup-marker"><img src="$[options.iconImageHref]" alt=""></div>'
+        );
+        options.iconLayout = samedyPickupIconLayout;
+        options.iconShape = { type: 'Rectangle', coordinates: [[-19, -44], [21, 1]] };
+    }
+    return options;
 }
 
 document.addEventListener('shop-theme-changed', () => {
     for (const { marker, point } of pickupPointMarkers) {
-        // Clear custom image overrides so the built-in bright preset can take effect.
-        for (const option of ['iconLayout', 'iconImageHref', 'iconImageSize', 'iconImageOffset', 'preset', 'iconColor']) {
+        for (const option of ['iconLayout', 'iconImageHref', 'iconImageSize', 'iconImageOffset', 'iconShape']) {
             marker.options.unset(option);
         }
         marker.options.set(pickupPointMarkerOptions(point));

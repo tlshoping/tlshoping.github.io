@@ -37,12 +37,11 @@ html[data-shop-theme="Samedy"] body {
     font-size: 15px;
     font-weight: 500;
     line-height: 1.5;
-    overflow: hidden;
+    overflow: visible;
 }
 html[data-shop-theme="Samedy"] main {
-    height: calc(var(--shop-viewport-height, 100dvh) - var(--s-nav-height));
-    overflow-x: hidden;
-    overflow-y: auto;
+    height: auto;
+    overflow: visible;
 }
 html[data-shop-theme="Samedy"] :is(button, input, textarea, select, pre) { font-family: inherit; }
 html[data-shop-theme="Samedy"] :is(a, .search_but, .choice_point_name, .choice_time_name) { color: var(--s-yellow); }
@@ -468,7 +467,18 @@ html[data-shop-theme="Samedy"] .address_search_response { padding: 12px 2px; bor
 html[data-shop-theme="Samedy"] .address_search_response_name { font-size: 16px; font-weight: 800; line-height: 1.3; }
 html[data-shop-theme="Samedy"] .address_search_response_discript { margin-top: 2px; font-size: 14px; line-height: 1.4; color: var(--s-muted); }
 html[data-shop-theme="Samedy"] .map_page { background: #141414; }
-html[data-shop-theme="Samedy"] .map [class*="ground-pane"] { filter: invert(1) hue-rotate(180deg) saturate(.55) brightness(.85); }
+html[data-shop-theme="Samedy"] .map [class*="ground-pane"] {
+    filter: invert(1) hue-rotate(180deg) saturate(.55) brightness(.85);
+}
+html[data-shop-theme="Samedy"] .samedy-pickup-marker {
+    position: absolute; left: -19px; top: -44px; width: 40px; height: 45px;
+}
+html[data-shop-theme="Samedy"] .samedy-pickup-marker img {
+    display: block; width: 100%; height: 100%; object-fit: contain; pointer-events: none;
+    filter: brightness(0) saturate(100%) invert(86%) sepia(76%) saturate(1910%)
+        hue-rotate(337deg) brightness(103%) contrast(102%)
+        drop-shadow(0 0 1px #f4f1eb) drop-shadow(0 1px 3px #080808);
+}
 html[data-shop-theme="Samedy"] :is(.close_map_but, .search_map_but) {
     top: 14px; width: 48px; height: 48px; background: var(--s-input);
     border: 2px solid var(--s-paper); box-sizing: border-box; color: var(--s-text);
@@ -636,6 +646,6 @@ html[data-shop-theme="Samedy"] .hour:last-child { margin-right: 16px; }
 @media (max-width: 499px) {
     html[data-shop-theme="Samedy"] .form_container { padding-left: 0; padding-right: 0; }
     html[data-shop-theme="Samedy"] .form_path { margin-left: 16px; margin-right: 16px; }
-    html[data-shop-theme="Samedy"] :is(.location_form, .period_form, .contact_form, .payment_form, .pay_form) { border-left: 0; border-right: 0; border-radius: 0; }
+    html[data-shop-theme="Samedy"] :is(.location_form, .period_form, .contact_form, .payment_form, .pay_form) { border-radius: 8px; }
 }
 html[data-shop-theme="Samedy"] :is(.hide, .hide_no_delivery, [hidden], footer nav.hide) { display: none !important; }
