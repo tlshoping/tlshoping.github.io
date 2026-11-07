@@ -151,18 +151,11 @@ html[data-shop-theme="Samedy"] :is(.address_header, .main_path, .path, .cart_pat
     .bonuses_container, .gift-stock-row, .gift-promotion-row) { border-color: var(--s-line); }
 html[data-shop-theme="Samedy"] :is(.address_notification, .address_question) { background: var(--s-panel); border-radius: 0 0 8px 8px; }
 html[data-shop-theme="Samedy"] .pickup_container {
-    background: var(--s-input) !important;
-    background-image: radial-gradient(circle, #ffffff29 1.1px, transparent 1.5px) !important;
-    background-size: 6px 6px !important;
     border: 2px solid var(--s-paper);
     border-radius: 8px;
     box-shadow: 4px 4px 0 var(--s-red);
 }
-html[data-shop-theme="Samedy"] .pickup_icon { display: none; }
-html[data-shop-theme="Samedy"] .icon_container::before {
-    content: ""; display: block; width: 104px; height: 40px;
-    background: url("samedy/assets/samedy-logo.svg") center / contain no-repeat;
-}
+html[data-shop-theme="Samedy"] .pickup_icon { display: block; width: 100%; height: 100%; }
 html[data-shop-theme="Samedy"] .delivery_price {
     font-family: Unbounded, sans-serif; font-weight: 900; font-size: 10px;
     color: var(--s-input); background: var(--s-yellow); border: 2px solid var(--s-input);
@@ -247,8 +240,7 @@ html[data-shop-theme="Samedy"] .pickup_list_name { margin: 0 0 24px; line-height
 html[data-shop-theme="Samedy"] .pickup_list { margin: 0; flex-wrap: wrap; gap: 24px 32px; }
 html[data-shop-theme="Samedy"] .pickup { width: 136px; margin: 0; flex: 0 0 136px; }
 html[data-shop-theme="Samedy"] .pickup_container { width: 136px; height: 72px; box-sizing: border-box; }
-html[data-shop-theme="Samedy"] .icon_container { width: 104px; height: auto; }
-html[data-shop-theme="Samedy"] .icon_container::before { height: auto; aspect-ratio: 104 / 40; }
+html[data-shop-theme="Samedy"] .icon_container { width: 104px; height: 40px; }
 html[data-shop-theme="Samedy"] .pickup_list_address {
     margin-top: 12px; padding: 0 0 0 2px; font-size: 15px; font-weight: 700; color: var(--s-paper);
 }
@@ -478,9 +470,7 @@ html[data-shop-theme="Samedy"] .samedy-pickup-marker {
 }
 html[data-shop-theme="Samedy"] .samedy-pickup-marker img {
     display: block; width: 100%; height: 100%; object-fit: contain; pointer-events: none;
-    filter: brightness(0) saturate(100%) invert(86%) sepia(76%) saturate(1910%)
-        hue-rotate(337deg) brightness(103%) contrast(102%)
-        drop-shadow(0 0 1px #f4f1eb) drop-shadow(0 1px 3px #080808);
+    filter: drop-shadow(0 0 1px #f4f1eb) drop-shadow(0 1px 3px #080808);
 }
 html[data-shop-theme="Samedy"] :is(.close_map_but, .search_map_but) {
     top: 14px; width: 48px; height: 48px; background: var(--s-input);
