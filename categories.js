@@ -416,6 +416,7 @@ function create_categories(json_data, category_id, type, searchRequest, pickupPo
     }
     show_cart();
     mountGiftManagement(pickupPointData);
+    mountPointBranding(pickupPointData);
     cartManagement(pickupPointData, json_data);
     open_categories(pickupPointData);
     editProductCount(basketMainList, pickupPointData)

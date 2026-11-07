@@ -448,7 +448,7 @@ function pickupPointsManage(pickupPointsList, type) { // Генерация то
         pickupList.append(pickup);
         pickup.outerHTML =
             `
-        <li class="pickup">
+        <li class="pickup" data-pickup-point-id="${visiblePoints[i].id}">
             <p class="delivery_price ${deliveryPriceView}">Доставка ${deliveryPrice}₽</p>
             <div class="pickup_container" style="background-color: ${visiblePoints[i].background_color || 'rgb(237, 14, 0)'}">
                 <div class="icon_container">

@@ -736,4 +736,19 @@ html[data-shop-theme="Samedy"] .gift-toolbar { margin: 0 16px 0 12px; }
     html[data-shop-theme="Samedy"] :is(.main_path, .path) > .gift-toolbar { width: calc(100% - 32px); margin: 0 16px; }
     html[data-shop-theme="Samedy"] .gift-toolbar > button { width: 100%; }
 }
+html[data-shop-theme="Samedy"] .branding-preview {
+    border-color: var(--s-line);
+    background: repeating-conic-gradient(#252525 0% 25%, #080808 0% 50%) 0 0 / 16px 16px;
+    color: var(--s-muted);
+}
+html[data-shop-theme="Samedy"] .branding-section .gift-primary {
+    background: var(--s-yellow); color: var(--s-input); box-shadow: 4px 4px 0 var(--s-red);
+}
+html[data-shop-theme="Samedy"] .branding-section input[type="file"] {
+    background: var(--s-input); color: var(--s-paper); border-color: var(--s-line);
+}
+html[data-shop-theme="Samedy"] .branding-section input::file-selector-button {
+    background: var(--s-yellow); color: var(--s-input); border: 0; border-radius: 4px;
+    padding: 8px; margin-right: 8px; font: inherit; font-weight: 700;
+}
 html[data-shop-theme="Samedy"] :is(.hide, .hide_no_delivery, [hidden], footer nav.hide) { display: none !important; }
