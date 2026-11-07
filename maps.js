@@ -20,7 +20,8 @@ function pickupPointMarkerOptions(point) {
     };
     if (document.documentElement.dataset.shopTheme === 'Samedy' && ymaps.templateLayoutFactory) {
         samedyPickupIconLayout ||= ymaps.templateLayoutFactory.createClass(
-            '<div class="samedy-pickup-marker"><img src="$[options.iconImageHref]" alt=""></div>'
+            // Yandex strips the "icon" prefix from options exposed to the icon layout.
+            '<div class="samedy-pickup-marker"><img src="$[options.imageHref]" alt=""></div>'
         );
         options.iconLayout = samedyPickupIconLayout;
         options.iconShape = { type: 'Rectangle', coordinates: [[-19, -44], [21, 1]] };
