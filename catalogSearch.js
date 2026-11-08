@@ -1,9 +1,10 @@
 let searchHintsRevision = 0;
+let searchHintsController;
 
-async function correctSpelling(botId, pickupPointId, text) {
+async function correctSpelling(botId, pickupPointId, text, signal) {
     try {
         const postData = {
-            botId: 0,
+            botId: botId,
             pickupPointId: pickupPointId,
             text: text
         };
@@ -13,12 +14,15 @@ async function correctSpelling(botId, pickupPointId, text) {
             method: 'POST',
             headers: myHeaders,
             body: JSON.stringify(postData),
+            signal,
         });
 
         const data = await response.json();
-        return Array.isArray(data.data) ? data.data : [];
+        return Array.isArray(data?.data) ? data.data.filter(row => Array.isArray(row?.ids) && typeof row.word === 'string') : [];
     } catch (error) {
-        console.error('Не удалось получить данные:', error);
+        if (error.name !== 'AbortError' && typeof showShopFailure === 'function') {
+            showShopFailure(error, null, 'Подсказки поиска сейчас недоступны. Каталог можно просматривать вручную.');
+        }
         return [];
     }
 }
@@ -102,6 +106,9 @@ function searchGenerator(searchPath, searchRequest, pickupPointData) {
 
 function search_hints(pickupPointData) {
     const revision = ++searchHintsRevision;
+    searchHintsController?.abort();
+    searchHintsController = new AbortController();
+    const requestSignal = searchHintsController.signal;
     const inputValue = document.querySelector('.search').value;
     const pointId = pickupPointData.id;
     new Promise((resolve) => {
@@ -134,8 +141,8 @@ function search_hints(pickupPointData) {
             });
 
         } else if (!/^\s*$/.test(search.value)) {
-            correctSpelling(0, pickupPointData.id, search.value.toLowerCase()).then(searchResponseList => {
-                if (revision !== searchHintsRevision || search.value !== inputValue) return;
+            correctSpelling(typeof bot_id === 'undefined' ? 0 : bot_id, pickupPointData.id, search.value.toLowerCase(), requestSignal).then(searchResponseList => {
+                if (revision !== searchHintsRevision || search.value !== inputValue) { resolve(); return; }
 
                 if (searchResponseList.length > 0) {
                     let directSearchList = [];
@@ -224,6 +231,7 @@ function search_hints(pickupPointData) {
 
 function search_manage(pickupPointData) { // Управление логистикой поиска
     searchHintsRevision++;
+    searchHintsController?.abort();
 
     // Отменяем предыдущие обработчики
     if (searchController) {

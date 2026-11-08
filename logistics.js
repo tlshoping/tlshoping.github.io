@@ -6,17 +6,11 @@ let deliveryCourierAvailabilityReady = false;
 const hourRenderVersions = { delivery: 0, pickup: 0 };
 
 async function fetchDeliveryCourierHours(pickupPointId) {
-    const response = await fetch(`https://${apiUrl}/api/V2/courier-availability`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
+    const payload = await shopApi('courier-availability', {
             bot_id: bot_id,
             secret_key: secretKey,
             pickup_point_id: pickupPointId
-        })
-    });
-    const payload = await response.json();
-    if (!response.ok) throw new Error(payload.error || 'Не удалось проверить расписание курьеров');
+        }, { ttl: 15000, validate: value => Array.isArray(value.data) });
     basketMainList.deliveryOnSiteBlocked = Boolean(payload.deliveryOnSiteBlocked);
     return new Set(payload.data.map(row => new Date(row.interval).toISOString()));
 }
@@ -51,7 +45,11 @@ function updateDeliveryPaymentOptions() {
     }
 }
 
-function hideAll() {
+function hideAll(preserveCatalogRequest = false) {
+    if (!preserveCatalogRequest) {
+        catalogNavigationRevision++;
+        loading.classList.add('hide');
+    }
     mainPage.classList.add('hide');
     mapPage.classList.add('hide');
     searchMap.classList.add('hide');
@@ -101,6 +99,10 @@ mainPageBut.addEventListener('click', () => {
 });
 
 basketBut.addEventListener('click', () => {
+    if (!basketMainList?.items) {
+        showShopNotice('Корзина ещё не загружена.', () => get_basket());
+        return;
+    }
     hideAll();
     basketBut.classList.add('active');
     basketPage.classList.remove('hide');
@@ -115,6 +117,10 @@ basketBut.addEventListener('click', () => {
 });
 
 profileBut.addEventListener('click', () => {
+    if (!user_data?.data?.id) {
+        showShopNotice('Профиль ещё не загружен.', startShop);
+        return;
+    }
     hideAll();
     profileBut.classList.add('active');
     profilePage.classList.remove('hide');
@@ -122,21 +128,32 @@ profileBut.addEventListener('click', () => {
     profileBody.classList.remove('hide');
 });
 
-adminBut.addEventListener('click', () => {
+adminBut.addEventListener('click', async () => {
+    try { await ShopModules.staff(user_data?.data?.status); }
+    catch (error) { showShopFailure(error, () => ShopModules.staff(user_data?.data?.status)); return; }
     hideAll();
     adminBut.classList.add('active');
     adminPage.classList.remove('hide');
 });
 
+let catalogNavigationRevision = 0;
 function openPickupPointCatalog(pickupPointsList) {
     let pickupElementsList = document.getElementsByClassName('pickup');
     for (let i = 0; i < pickupElementsList.length; i++) {
         const newElement = pickupElementsList[i].cloneNode(true);
         pickupElementsList[i].parentNode.replaceChild(newElement, pickupElementsList[i]);
-        newElement.addEventListener('click', async () => {
+        const openPoint = async () => {
+            const revision = ++catalogNavigationRevision;
             try {
-
+                if (!user_data?.data?.secret_key) {
+                    showShopNotice('Не удалось загрузить профиль.', startShop);
+                    return;
+                }
                 loading.classList.remove('hide');
+                const [catalogJson] = await Promise.all([
+                    getCatalog(pickupPointsList[i]), ShopModules.staff(user_data.data.status)
+                ]);
+                if (revision !== catalogNavigationRevision) return;
                 let category_list = document.getElementsByClassName('category_list')[0];
                 let cart_category = document.getElementsByClassName('cart_category');
                 let cart_product = document.getElementsByClassName('cart_product');
@@ -162,43 +179,51 @@ function openPickupPointCatalog(pickupPointsList) {
                     add_cart[0].remove();
                 };
 
-                const catalogJson = await getCatalog(pickupPointsList[i]);
                 create_categories(await catalogJson, 0, '', '', pickupPointsList[i]);
 
-                hideAll();
+                hideAll(true);
                 catalogPage.classList.remove('hide');
                 mainPageBut.classList.add('active');
             }
             catch (error) {
-                console.log(error);
+                if (revision === catalogNavigationRevision) showShopFailure(error, openPoint, 'Не удалось загрузить каталог. Предыдущий экран сохранён.');
+            } finally {
+                if (revision === catalogNavigationRevision) loading.classList.add('hide');
             }
-        });
+        };
+        newElement.addEventListener('click', openPoint);
     };
+}
+
+function openMapPage() {
+    mapPage.classList.remove('hide');
+    ensureMapInitialized().catch(error => showShopFailure(error, openMapPage,
+        'Карта сейчас недоступна. Магазины можно выбрать в каталоге.'));
 }
 
 addressNotificationSelect.addEventListener('click', () => {
     hideAll();
     addressNotification.classList.remove('show');
-    mapPage.classList.remove('hide');
+    openMapPage();
     mainPageBut.classList.add('active');
 });
 
 addressQuestionNo.addEventListener('click', () => {
     hideAll();
     addressQuestion.classList.remove('show');
-    mapPage.classList.remove('hide');
+    openMapPage();
     mainPageBut.classList.add('active');
 });
 
 addressHeader.addEventListener('click', () => {
     hideAll();
-    mapPage.classList.remove('hide');
+    openMapPage();
     mainPageBut.classList.add('active');
 });
 
 formAdressEdit.addEventListener('click', () => {
     hideAll();
-    mapPage.classList.remove('hide');
+    openMapPage();
     mainPageBut.classList.add('active');
     formUserAdress.classList.remove('incorrect_text');
     formAdressEdit.classList.remove('incorrect_svg');
@@ -232,7 +257,7 @@ mapSelectAdress.addEventListener('click', () => {
 
 closeSearchMapBut.addEventListener('click', () => {
     hideAll();
-    mapPage.classList.remove('hide');
+    openMapPage();
     mainPageBut.classList.add('active');
 });
 
@@ -635,15 +660,22 @@ document.getElementById('deliveryPrepaymentHelpButton').addEventListener('click'
 });
 
 payBut.addEventListener('click', () => {
+    if (orderRequestActive || orderResultUncertain) {
+        createOrder();
+        return;
+    }
     if (formData.method === 'delivery' && (!deliveryCourierAvailabilityReady
         || Number(deliveryCourierPointId) !== Number(selectedPickupPointData.id))) {
-        alert('Не удалось проверить расписание курьеров. Откройте корзину заново и повторите попытку.');
+        showShopNotice('Не удалось проверить расписание курьеров. Обновите корзину перед оформлением.', async () => {
+            ShopNetwork.invalidate();
+            await get_basket({ reconcile: true });
+        });
         return;
     }
     console.log(formData);
     if (orderChecker()) {
-        createOrder();
         loading.classList.remove('hide');
+        createOrder();
     } else {
         if ((!userAddress || !formNoDelivery.classList.contains('hide')) && formData.method == 'delivery') {
             formPath.scrollIntoView({

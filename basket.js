@@ -4,138 +4,91 @@ function escapeBasketText(value) {
     })[char]);
 }
 
-async function get_basket() {
-    const post_get_basketData = {
-        bot_id: bot_id,
-        user_secret_key: user_data.data.secret_key
-    };
-    let my_get_basketHeaders = new Headers();
-    my_get_basketHeaders.append('Content-Type', 'application/json');
-    try {
-        const response = await fetch(`https://${apiUrl}/api/V2/get-cart`, {
-            method: 'POST',
-            headers: my_get_basketHeaders,
-            body: JSON.stringify(post_get_basketData),
-        })
+let cartReadPromise;
+let cartWriteQueue = Promise.resolve();
+let cartPendingWrites = 0;
+let cartRevision = 0;
+let cartNeedsReconcile = false;
+const validCart = value => Boolean(value.data && Array.isArray(value.data.items));
+function renderBasketState(data) {
+    // Checkout-hour loading must not hold the cart mutation queue or the whole-page spinner.
+    Promise.resolve(create_basket(data)).catch(error => showShopFailure(error));
+}
 
-        const jsonData = await response.json();
-        if (!response.ok) throw new Error(jsonData.error || 'Не удалось загрузить корзину');
+function get_basket({ reconcile = false, background = false } = {}) {
+    if (!user_data?.data?.secret_key || (background && (document.hidden || navigator.onLine === false))) return Promise.resolve(null);
+    if (cartPendingWrites && !reconcile) return Promise.resolve(basketMainList);
+    if (cartReadPromise) return cartReadPromise;
+    const revision = cartRevision;
+    cartReadPromise = (async () => {
+        try {
+            const payload = await shopApi('get-cart', { bot_id, user_secret_key: user_data.data.secret_key }, { validate: validCart });
+            if (revision !== cartRevision) return null;
+            basketMainList = payload.data;
+            cartNeedsReconcile = false;
+            renderBasketState(payload.data);
+            return payload.data;
+        } catch (error) {
+            showShopFailure(error, () => get_basket({ reconcile: true }), 'Не удалось обновить корзину. Последние данные остаются на экране.');
+            return null;
+        } finally {
+            loading.classList.add('hide');
+            cartReadPromise = null;
+        }
+    })();
+    return cartReadPromise;
+}
 
-        basketMainList = jsonData.data;
-        create_basket(jsonData.data);
-        loading.classList.add('hide');
-    } catch (error) {
-        console.error('Error:', error);
-        throw error;
-    }
-};
-
-async function addProduct(product_id, pickupPointId) { // добавить 1 товар в корзину
-    const post_add_productData = {
-        bot_id: bot_id,
-        user_secret_key: user_data.data.secret_key,
-        catalog_id: product_id,
-        pickup_point_id: pickupPointId,
-        count: 1
-    };
-    let my_add_productHeaders = new Headers();
-    my_add_productHeaders.append('Content-Type', 'application/json');
-
-    try {
-        const response = await fetch(`https://${apiUrl}/api/V2/cart-add`, {
-            method: 'POST',
-            headers: my_add_productHeaders,
-            body: JSON.stringify(post_add_productData),
-        });
-
-        const jsonData = await response.json();
-        if (!response.ok) throw new Error(jsonData.error || 'Не удалось изменить корзину');
-
-        basketMainList = jsonData.data;
-        create_basket(jsonData.data);
-
-        return jsonData.data;
-    } catch (error) {
-        console.error('Error:', error);
-        throw error;
-    }
-};
-
-async function removeProduct(product_id, pickupPointId, count = 1) { // убрать 1 товар из корзины
-    const postData = {
-        bot_id: bot_id,
-        user_secret_key: user_data.data.secret_key,
-        catalog_id: product_id,
-        pickup_point_id: pickupPointId,
-        count: count
-    };
-    let my_add_productHeaders = new Headers();
-    my_add_productHeaders.append('Content-Type', 'application/json');
-
-    try {
-        const response = await fetch(`https://${apiUrl}/api/V2/cart-remove`, {
-            method: 'POST',
-            headers: my_add_productHeaders,
-            body: JSON.stringify(postData),
-        });
-
-        const jsonData = await response.json();
-        if (!response.ok) throw new Error(jsonData.error || 'Не удалось изменить корзину');
-
-        basketMainList = jsonData.data;
-        create_basket(jsonData.data);
-
-        return jsonData.data;
-    } catch (error) {
-        console.error('Error:', error);
-        throw error;
-    }
-};
-
-function delete_all_product() { // уброать все товары из корзины
-    const post_delete_all_productData = {
-        bot_id: bot_id,
-        user_secret_key: user_data.data.secret_key
-    };
-    let my_delete_all_productHeaders = new Headers();
-    my_delete_all_productHeaders.append('Content-Type', 'application/json');
-    fetch(`https://${apiUrl}/api/V2/remove-all-cart`, {
-        method: 'POST',
-        headers: my_delete_all_productHeaders,
-        body: JSON.stringify(post_delete_all_productData),
-    }).then((data) => {
-        return data.json();
-    }).then((jsonData) => {
-        basketMainList = jsonData.data;
-        create_basket(jsonData.data);
+function mutateCart(name, data) {
+    cartPendingWrites++;
+    cartRevision++;
+    const result = cartWriteQueue.then(async () => {
+        try {
+            // A lost write response is ambiguous: read the server state before another mutation.
+            if (cartReadPromise) await cartReadPromise;
+            if (cartNeedsReconcile && !(await get_basket({ reconcile: true }))) return;
+            const payload = await shopApi(name, { bot_id, user_secret_key: user_data.data.secret_key, ...data }, { validate: validCart });
+            basketMainList = payload.data;
+            renderBasketState(payload.data);
+            return payload.data;
+        } catch (error) {
+            cartNeedsReconcile = true;
+            showShopFailure(error, () => get_basket({ reconcile: true }),
+                'Не удалось подтвердить изменение корзины. Обновите её перед следующим действием.');
+        } finally { cartPendingWrites--; }
     });
-};
+    cartWriteQueue = result.catch(error => { showShopFailure(error); });
+    return cartWriteQueue;
+}
+
+function addProduct(product_id, pickupPointId) {
+    return mutateCart('cart-add', { catalog_id: product_id, pickup_point_id: pickupPointId, count: 1 });
+}
+function removeProduct(product_id, pickupPointId, count = 1) {
+    return mutateCart('cart-remove', { catalog_id: product_id, pickup_point_id: pickupPointId, count });
+}
+function delete_all_product() { return mutateCart('remove-all-cart', {}); }
+
+function startBasketRefresh(immediate = false) {
+    clearTimeout(basketUpdateInterval);
+    if (document.hidden || navigator.onLine === false || !user_data?.data?.secret_key) return;
+    basketUpdateInterval = setTimeout(async () => {
+        await get_basket({ background: true });
+        startBasketRefresh();
+    }, immediate ? 0 : 60000);
+}
+document.addEventListener('visibilitychange', () => startBasketRefresh(!document.hidden));
+window.addEventListener('online', () => startBasketRefresh(true));
+window.addEventListener('offline', () => clearTimeout(basketUpdateInterval));
 
 deleteAllProducts.addEventListener('click', () => {
     delete_all_product();
 });
 
 async function getAllStopHours(pickupPointId, method) {
-    try {
-
-        const postData = {
-            bot_id: bot_id,
-            pickupPointId: pickupPointId,
-            method: method
-        };
-        let myHeaders = new Headers();
-        myHeaders.append('Content-Type', 'application/json');
-        const response = await fetch(`https://${apiUrl}/api/V2/get-stop`, {
-            method: 'POST',
-            headers: myHeaders,
-            body: JSON.stringify(postData),
-        });
-        const jsonData = await response.json();
-        return jsonData.data;
-
-    } catch (err) {
-        console.error('Ошибка:', err);
-    };
+    const payload = await shopApi('get-stop', { bot_id, pickupPointId, method },
+        { ttl: 15000, validate: value => Array.isArray(value.data) });
+    return payload.data;
 }
 
 let basketHandlers = [];

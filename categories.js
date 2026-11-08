@@ -1,24 +1,13 @@
 async function getCatalog(pickupPointData) {
 
     const postData = {
-        bot_id: 0,
+        bot_id: bot_id,
         pickup_point_id: pickupPointData.id,
         secret_key: user_data.data.secret_key
     };
-    let myHeaders = new Headers();
-    myHeaders.append('Content-Type', 'application/json');
-    const data = await fetch(`https://${apiUrl}/api/V2/get-category`, {
-        method: 'POST',
-        headers: myHeaders,
-        body: JSON.stringify(postData)
-    });
+    const payload = await shopApi('get-category', postData, { validate: value => Array.isArray(value.data) });
+    const json_data = payload.data;
 
-    let json_data = await data.json()
-    json_data = await json_data['data'];
-    common_json_data = await json_data;
-
-    catalog_loading.classList.add('hide');
-    search_manage(pickupPointData);
     console.log(json_data);
     return json_data;
 }
@@ -38,6 +27,9 @@ function showMissingCatalogImage(image) {
 
 function create_categories(json_data, category_id, type, searchRequest, pickupPointData) { //создание категорий
     if (category_id == 0 && type != 'search') {
+        common_json_data = json_data;
+        search_manage(pickupPointData);
+        catalog_loading.classList.add('hide');
         let path = document.createElement('section');
         path.classList.add('main_path');
         path.id = 'mainPath';
@@ -415,8 +407,8 @@ function create_categories(json_data, category_id, type, searchRequest, pickupPo
         if (image.complete && !image.naturalWidth) showMissingCatalogImage(image);
     }
     show_cart();
-    mountGiftManagement(pickupPointData);
-    mountPointBranding(pickupPointData);
+    if (typeof mountGiftManagement === 'function') mountGiftManagement(pickupPointData);
+    if (typeof mountPointBranding === 'function') mountPointBranding(pickupPointData);
     cartManagement(pickupPointData, json_data);
     open_categories(pickupPointData);
     editProductCount(basketMainList, pickupPointData)
@@ -556,6 +548,8 @@ function editProductCount(cartData, pickupPointData) {    //Редактиров
 
 async function reload(pickupPointData, categoryId) {
     try {
+        const newCatalogData = await getCatalog(pickupPointData);
+        common_json_data = newCatalogData;
         let path = document.getElementsByClassName('path')[0];
         let category_list = document.getElementsByClassName('category_list')[0];
         let cart_category = document.getElementsByClassName('cart_category');
@@ -577,7 +571,6 @@ async function reload(pickupPointData, categoryId) {
             add_cart[0].remove();
         };
 
-        const newCatalogData = await getCatalog(pickupPointData);
         if (categoryId == 0) {
             create_categories(await newCatalogData, parseInt(categoryId), '', '', pickupPointData);
         } else {
@@ -585,7 +578,7 @@ async function reload(pickupPointData, categoryId) {
             create_categories(json_data_new, parseInt(categoryId), '', '', pickupPointData);
         };
     } catch (error) {
-        console.error(error);
+        showShopFailure(error, () => reload(pickupPointData, categoryId), 'Не удалось обновить каталог. Предыдущие данные сохранены.');
     }
 };
 

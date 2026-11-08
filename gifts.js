@@ -15,6 +15,7 @@ function mountGiftManagement(point) {
     if (!giftStaffRoles.includes(user_data?.data?.status)) return;
     const toolbar = document.createElement('div');
     toolbar.className = 'gift-toolbar';
+    toolbar.addEventListener('click', event => event.stopPropagation());
     const button = document.createElement('button');
     button.type = 'button';
     button.className = 'gift-button';

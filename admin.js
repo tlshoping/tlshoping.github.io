@@ -228,9 +228,13 @@ function admChangeCategory(pickupPointData) {
     }
 }
 
-function create_category(pickupPointData, id, type, title, category_id, description, img, count, price) {
+const catalogEditsInFlight = new Set();
+async function create_category(pickupPointData, id, type, title, category_id, description, img, count, price) {
+    const key = `${pickupPointData.id}:${id}:${category_id}`;
+    if (catalogEditsInFlight.has(key)) return;
+    catalogEditsInFlight.add(key);
     const postData = {
-        bot_id: 0,
+        bot_id: bot_id,
         id_raw: id,
         type: type,
         title: title,
@@ -242,25 +246,17 @@ function create_category(pickupPointData, id, type, title, category_id, descript
         pickup_point_id: pickupPointData.id,
         secret_key: user_data.data.secret_key
     };
-    fetch(`https://${apiUrl}/api/V2/catalog-edit`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(postData)
-    })
-        .then((response) => response.json())
-        .then((responseData) => {
-            catalogPage.classList.remove('hide');
-            cart.classList.add('hide');
-
-            const targetId = (id == 0) ? responseData.id : id;
-
-            reload(pickupPointData, category_id).then(() => {
-                console.log('Запуск срола');
-                scrollToCatalogItem(targetId);
-            });
-        });
+    try {
+        const responseData = await shopApi('catalog-edit', postData);
+        catalogPage.classList.remove('hide');
+        cart.classList.add('hide');
+        const targetId = (id == 0) ? responseData.id : id;
+        await reload(pickupPointData, category_id);
+        scrollToCatalogItem(targetId);
+    } catch (error) {
+        showShopFailure(error, () => reload(pickupPointData, category_id),
+            'Не удалось подтвердить сохранение. Проверьте каталог перед повторным добавлением.');
+    } finally { catalogEditsInFlight.delete(key); }
 };
 
 function admBulkCategoryPrice(pickupPointData) {
@@ -304,7 +300,7 @@ function admBulkCategoryPrice(pickupPointData) {
                         'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({
-                        bot_id: 0,
+                        bot_id: bot_id,
                         category_id: categoryId,
                         pickup_point_id: pickupPointData.id,
                         mode: bulkPriceMode.value,
@@ -325,8 +321,7 @@ function admBulkCategoryPrice(pickupPointData) {
                 await reload(pickupPointData, categoryList.id);
                 scrollToCatalogItem(categoryId);
             } catch (error) {
-                console.error('Ошибка массового изменения цен:', error);
-                alert(error.message || 'Не удалось массово обновить цены');
+                showShopFailure(error, null, 'Не удалось подтвердить обновление цен. Проверьте каталог перед повторным изменением.');
             } finally {
                 saveBulkPriceText.textContent = defaultButtonText;
                 checkBulkPriceForm();
@@ -372,7 +367,7 @@ function admBulkCategoryDescription(pickupPointData) {
                         'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({
-                        bot_id: 0,
+                        bot_id: bot_id,
                         category_id: categoryId,
                         pickup_point_id: pickupPointData.id,
                         description: bulkDescriptionInput.value.trim(),
@@ -392,8 +387,7 @@ function admBulkCategoryDescription(pickupPointData) {
                 await reload(pickupPointData, categoryList.id);
                 scrollToCatalogItem(categoryId);
             } catch (error) {
-                console.error('Ошибка массового изменения описаний:', error);
-                alert(error.message || 'Не удалось массово обновить описания');
+                showShopFailure(error, null, 'Не удалось подтвердить обновление описаний. Проверьте каталог перед повторным изменением.');
             } finally {
                 saveBulkDescriptionText.textContent = defaultButtonText;
                 checkBulkDescriptionForm();
@@ -462,7 +456,7 @@ function admManageCategory(pickupPointData) {
 
 function category_manage(id, type, pickupPointData, categoryId) {
     const postData = {
-        bot_id: 0,
+        bot_id: bot_id,
         id: id,
         type: type,
         pickupPointId: pickupPointData.id,
@@ -474,9 +468,9 @@ function category_manage(id, type, pickupPointData, categoryId) {
         method: 'POST',
         headers: myHeaders,
         body: JSON.stringify(postData),
-    }).then(() => {
-        reload(pickupPointData, categoryId);
-    })
+    }).then(() => reload(pickupPointData, categoryId))
+        .catch(error => showShopFailure(error, () => reload(pickupPointData, categoryId),
+            'Не удалось подтвердить изменение. Обновите каталог для проверки.'));
 };
 
 function admin_activate(url, value) {

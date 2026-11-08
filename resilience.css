@@ -1,0 +1,30 @@
+.shop-status {
+    position: fixed;
+    left: 16px;
+    bottom: calc(var(--shop-nav-height, 82px) + var(--shop-safe-bottom, 0px) + 10px);
+    width: calc(100% - 32px);
+    max-width: 360px;
+    max-height: 28vh;
+    overflow: auto;
+    box-sizing: border-box;
+    z-index: 1100;
+    padding: 12px;
+    border: 1px solid #777;
+    border-radius: 8px;
+    background: #fff;
+    color: #222;
+    font: 500 13px/1.4 sans-serif;
+    box-shadow: 0 3px 14px #0003;
+}
+.shop-status[hidden], .shop-status button[hidden] { display: none !important; }
+.shop-status p { margin: 0 0 8px; }
+.shop-status > div { display: flex; gap: 12px; }
+.shop-status button {
+    cursor: pointer; border: 1px solid currentColor; border-radius: 5px;
+    padding: 6px 10px; font: inherit; color: inherit; background: transparent;
+}
+.shop-status button:disabled { opacity: .5; cursor: wait; }
+html[data-shop-theme="Samedy"] .shop-status {
+    background: #1a1a1a; color: #f4f1eb; border-color: #ffd52a; font-family: Manrope, sans-serif;
+}
+html[data-shop-theme="Samedy"] .shop-status .shop-retry { color: #ffd52a; }

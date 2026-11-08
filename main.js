@@ -126,8 +126,12 @@ function loadYandexMapsScript(apiKey) {
         script.src = `https://api-maps.yandex.ru/2.1/?apikey=${encodeURIComponent(apiKey)}&lang=ru_RU`;
         script.type = 'text/javascript';
         script.async = true;
-        script.onload = () => resolve(window.ymaps);
-        script.onerror = () => reject(new Error('Не удалось загрузить Yandex Maps JS API'));
+        const timer = setTimeout(() => {
+            script.remove();
+            reject(new Error('Yandex Maps JS API не загрузился вовремя'));
+        }, 15000);
+        script.onload = () => { clearTimeout(timer); resolve(window.ymaps); };
+        script.onerror = () => { clearTimeout(timer); reject(new Error('Не удалось загрузить Yandex Maps JS API')); };
 
         document.head.appendChild(script);
     });
@@ -233,26 +237,28 @@ function debounce(func, delay) {
     };
 }
 
+let shopStartupPromise;
+function startShop() {
+    if (shopStartupPromise) return shopStartupPromise;
+    shopStartupPromise = (async () => {
+        try {
+            const payload = await shopApi('get-pickup-points', { bot_id }, { validate: value => Array.isArray(value.data) });
+            pickupPointsData = payload.data;
+            await get_user(pickupPointsData);
+        } catch (error) {
+            showShopFailure(error, startShop, 'Не удалось загрузить магазин. Проверьте связь и нажмите «Повторить».');
+        } finally {
+            loading.classList.add('hide');
+            shopStartupPromise = null;
+        }
+    })();
+    return shopStartupPromise;
+}
+
 document.addEventListener('DOMContentLoaded', function () {
-    // Telegram.WebApp.expand();
     const urlParams = new URLSearchParams(window.location.search);
     secretKey = urlParams.get('secret_key');
     userId = urlParams.get('user_id');
     bot_id = urlParams.get('bot_id') || bot_id;
-
-    const postData = {
-        bot_id: bot_id,
-    };
-    let myHeaders = new Headers();
-    myHeaders.append('Content-Type', 'application/json');
-    fetch(`https://${apiUrl}/api/V2/get-pickup-points`, {
-        method: 'POST',
-        headers: myHeaders,
-        body: JSON.stringify(postData),
-    }).then((data) => {
-        return data.json();
-    }).then((json_data) => {
-        pickupPointsData = json_data.data
-        get_user(json_data.data);
-    });
+    startShop();
 });

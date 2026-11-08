@@ -10,13 +10,11 @@ function profile_manag() {
 
 async function createOrdersList(page, limit) {
     try {
-
+        const orderRecords = await getOrderRecords(page, limit, user_data.data.secret_key);
         let orders = ordersList.getElementsByClassName('order');
         for (let i = 0; i < orders.length;) {
             orders[0].remove();
         }
-
-        const orderRecords = await getOrderRecords(page, limit, user_data.data.secret_key);
 
         console.log(orderRecords);
 
@@ -65,39 +63,25 @@ async function createOrdersList(page, limit) {
         loading.classList.add('hide');
 
     } catch (error) {
-        console.error('Ошибка при создании списка заказов:', error);
+        showShopFailure(error, () => createOrdersList(page, limit), 'Не удалось обновить историю заказов. Предыдущий список сохранён.');
         loading.classList.add('hide');
     }
 };
 
 async function getOrderRecords(page, limit, secretKey) {
-    try {
-
-        const postData = {
+    const postData = {
             botId: bot_id,
             secretKey: secretKey,
             page: page,
             limit: limit
-        };
-        let myHeaders = new Headers();
-        myHeaders.append('Content-Type', 'application/json');
-        const data = await fetch(`https://${apiUrl}/api/V2/get-order`, {
-            method: 'POST',
-            headers: myHeaders,
-            body: JSON.stringify(postData)
-        });
-
-        let jsonData = await data.json()
-        const result = await jsonData.data;
-
-        return result;
-
-    } catch (error) {
-        console.error('Ошибка:', error);
-    }
+    };
+    const payload = await shopApi('get-order', postData, { validate: value => Array.isArray(value.data?.records) });
+    return payload.data;
 }
 
 function promocode_manag() {
+    if (document.querySelector('.check_promocode').dataset.bound) return;
+    document.querySelector('.check_promocode').dataset.bound = 'true';
     let promocode_input = document.getElementsByClassName('promocode_input')[0];
     let check_promocode = document.getElementsByClassName('check_promocode')[0];
 

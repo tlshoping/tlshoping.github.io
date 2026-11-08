@@ -464,10 +464,7 @@ function pickupPointsManage(pickupPointsList, type) { // Генерация то
     };
     openPickupPointCatalog(visiblePoints);
 
-    get_basket();
-
-    // Устанавливаем новый интервал для обновления корзины
-    basketUpdateInterval = setInterval(get_basket, 60000); // 60 секунд
+    startBasketRefresh();
 };
 
 function isPointInPolygon(latitude, longitude, polygon) {

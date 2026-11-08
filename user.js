@@ -1,63 +1,62 @@
-function get_user(UserPickupPointsData) {
-
-    ensureMapInitialized()
-        .catch((error) => {
-            console.error('Не удалось инициализировать Yandex Maps:', error);
+async function get_user(UserPickupPointsData) {
+    try {
+        const json_user_key_data = await shopApi('get-user', { bot_id, secret_key: secretKey }, {
+            validate: value => Boolean(value.data?.id && value.data?.secret_key)
         });
-
-    const post_user_keyData = {
-        bot_id: 0,
-        secret_key: secretKey
-    };
-    let my_user_keyHeaders = new Headers();
-    my_user_keyHeaders.append('Content-Type', 'application/json');
-    fetch(`https://${apiUrl}/api/V2/get-user`, {
-        method: 'POST',
-        headers: my_user_keyHeaders,
-        body: JSON.stringify(post_user_keyData),
-    }).then((user_key_data) => {
-        return user_key_data.json();
-    }).then(async (json_user_key_data) => {
         user_data = json_user_key_data;
         userId = user_data.data.id;
-
         const hasSavedAddress = Boolean(user_data?.data?.address);
-
+        if (hasSavedAddress) {
+            editAddressHeader(user_data.data.address, user_data.data.adress_description);
+            userCoords = `${user_data.data.latitude} ${user_data.data.longitude}`;
+            centerCords = [Number(user_data.data.longitude), Number(user_data.data.latitude)];
+        }
+        profile_manag();
+        pickupPointsManage(UserPickupPointsData);
+        loading.classList.add('hide');
+        await get_basket();
         if (!hasSavedAddress) {
             addressNotification.classList.add('show');
-            pickupPointsManage(UserPickupPointsData);
             requestGeolocation();
         } else {
-            editAddressHeader(user_data.data.address, user_data.data.adress_description);
-            setMapCenter(user_data.data.longitude, user_data.data.latitude).catch(() => {
-                console.warn('Карта недоступна. Выбор магазина продолжает работать без неё.');
-            });
-            await getNearestPoint(user_data.data.longitude, user_data.data.latitude);
-            userCoords = `${user_data.data.latitude} ${user_data.data.longitude}`;
+            // Show shops and profile first; route refinement is not on the startup critical path.
+            const savedCoords = userCoords;
+            const refine = () => {
+                if (document.hidden || userCoords !== savedCoords) return;
+                getNearestPoint(user_data.data.longitude, user_data.data.latitude);
+            };
+            if (window.requestIdleCallback) window.requestIdleCallback(refine, { timeout: 2500 });
+            else setTimeout(refine, 1200);
         };
-
-        profile_manag();
-    });
+    } catch (error) {
+        showShopFailure(error, () => get_user(UserPickupPointsData),
+            error.status === 401 || error.status === 403 || error.status === 404
+                ? 'Не удалось подтвердить доступ. Откройте магазин заново через своего бота.'
+                : 'Не удалось загрузить профиль. Проверьте связь и повторите загрузку.');
+    } finally {
+        loading.classList.add('hide');
+    }
 };
 
+let userUpdateQueue = Promise.resolve();
 function updateUser(adressDescription, address, coords, phoneNumber) {
     const postData = {
-        bot_id: 0,
+        bot_id: bot_id,
         secret_key: user_data.data.secret_key,
         adress_description: adressDescription,
         address: address,
         coords: coords,
         phone_number: phoneNumber
     }
-    const myHeaders = new Headers();
-    myHeaders.append('Content-Type', 'application/json');
-    fetch(`https://${apiUrl}/api/V2/update-user`, {
-        method: 'POST',
-        headers: myHeaders,
-        body: JSON.stringify(postData),
-    }).then((data) => {
-        return data.json();
-    }).then((json_data) => {
+    userUpdateQueue = userUpdateQueue.then(async () => {
+        try {
+            await shopApi('update-user', postData);
+            if (address) user_data.data.address = address;
+            if (phoneNumber) user_data.data.phone_number = phoneNumber;
+        } catch (error) {
+            showShopFailure(error, null, 'Не удалось подтвердить сохранение данных. Проверьте их перед оформлением.');
+        }
     });
+    return userUpdateQueue;
 }
 

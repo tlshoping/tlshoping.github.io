@@ -40,20 +40,10 @@ async function loadShopInfo() {
     const botId = shopInfoBotId();
 
     try {
-        const response = await fetch(`https://${apiUrl}/api/V2/get-bot-settings`, {
-            method: 'POST',
-            headers: new Headers({ 'Content-Type': 'application/json' }),
-            body: JSON.stringify({ bot_id: botId }),
-        });
-
-        const json = await response.json();
-
-        if (!json.data) {
-            throw new Error(json.error || 'Пустой ответ get-bot-settings');
-        }
-
+        const json = await shopApi('get-bot-settings', { bot_id: botId }, { validate: value => Boolean(value.data?.display_name) });
         shopInfo = { ...SHOP_INFO_DEFAULTS, ...json.data };
-        localStorage.setItem(shopInfoStorageKey(botId), JSON.stringify(shopInfo));
+        try { localStorage.setItem(shopInfoStorageKey(botId), JSON.stringify(shopInfo)); }
+        catch (_) { /* Private browsing may disallow storage; the loaded settings still work. */ }
     } catch (error) {
         // Сеть недоступна — показываем последние известные контакты вместо пустых.
         console.error('Не удалось загрузить настройки магазина:', error);
