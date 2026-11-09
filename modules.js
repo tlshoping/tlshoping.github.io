@@ -3,7 +3,7 @@
     function load(name) {
         if (!loaded.has(name)) loaded.set(name, new Promise((resolve, reject) => {
             const script = document.createElement('script');
-            script.src = `${name}?v=20261110-fifo`;
+            script.src = `${name}?v=20261110-history-cost`;
             script.onerror = () => {
                 script.remove();
                 loaded.delete(name);

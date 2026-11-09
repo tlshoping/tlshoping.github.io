@@ -2,7 +2,7 @@
     const unresolved = new Map();
     const origins = { receipt: 'Поставка', opening: 'Начальный остаток', adjustment: 'Корректировка', legacy_order: 'Старый заказ' };
     const auditTitles = { receipt: 'Поступление', cancel_receipt: 'Отмена поставки', opening_cost: 'Назначение стоимости', opening_split: 'Разделение начального остатка',
-        writeoff: 'Списание', refund: 'Возврат заказа' };
+        writeoff: 'Списание', refund: 'Возврат заказа', category_cost: 'Закупочная стоимость категории' };
     const allowed = () => ['owner', 'admin'].includes(user_data?.data?.status);
     const money = value => value == null ? 'неизвестна' : `${Number(value).toFixed(2)} ₽`;
     const date = value => new Date(value).toLocaleString('ru-RU');
@@ -37,8 +37,23 @@
             action.dataset.inventoryButton = 'true';
             const row = element('div', null, 'gift-toolbar'); row.append(action); card.append(row);
         }
+        for (const card of document.querySelectorAll('.cart_category')) {
+            const id = Number(card.id.replace('cart_', ''));
+            if (!id || card.querySelector('.inventory-bulk')) continue;
+            const section = element('section', null, 'inventory-bulk gift-section');
+            const price = input('Новая закупочная цена за единицу, ₽', 'number');
+            section.append(element('h3','Массово изменить закупочную стоимость'),
+                element('p','На этой точке, в категории и её подкатегориях: назначить цену неизвестным остаткам и старым заказам, сохранить цену будущих поставок для товаров с остатком 0. Прибыль прошлых периодов пересчитается. Уже известные цены не изменятся.','gift-hint'),
+                price.wrapper,button('Применить закупочную цену',()=>{
+                    if (!price.control.value || Number(price.control.value)<0) return;
+                    if (confirm(`Назначить закупочную цену ${price.control.value} ₽ в этой категории и вложенных подкатегориях на точке «${point.title}»? Неизвестные цены старых заказов и прибыль прошлых периодов пересчитаются. Известные цены не изменятся.`)) {
+                        openInventory(point,null,{category_id:id,unit_cost:price.control.value,request_key:crypto.randomUUID()});
+                    }
+                }));
+            card.append(section);
+        }
     };
-    async function openInventory(point, selectedId = null) {
+    async function openInventory(point, selectedId = null, categoryChange = null) {
         if (!allowed()) return;
         document.getElementById('inventoryEditor')?.remove();
         const overlay = element('section', null, 'gift-overlay');
@@ -64,7 +79,7 @@
         const actions = element('div', null, 'gift-actions'), content = element('div');
         panel.append(header, element('p', point.title, 'gift-point'),
             element('p', 'Поставки увеличивают остатки. Для текущих остатков сначала назначьте закупочную стоимость. ' +
-                'Старые продажи не пересчитываются. Обычное увеличение остатка без поставки создаёт партию с неизвестной ценой.', 'gift-hint'),
+                'Массовое назначение цены категории заполняет неизвестные цены старых заказов. Обычное увеличение остатка без поставки создаёт партию с неизвестной ценой.', 'gift-hint'),
             status, actions, content);
         overlay.append(panel); document.body.append(overlay); closeButton.focus();
         overlay.addEventListener('keydown', event => {
@@ -121,9 +136,9 @@
                 }
             } finally { busy = false; lock(Boolean(uncertain)); }
         }
-        const reload = button('Обновить', refresh);
+        const refreshButton = button('Обновить', refresh);
         const retry = button('Проверить операцию', () => uncertain && run(uncertain.name, uncertain.payload));
-        retry.hidden = !uncertain; actions.append(reload, retry);
+        retry.hidden = !uncertain; actions.append(refreshButton, retry);
         function section(title) {
             const node = element('section', null, 'gift-section'); node.append(element('h3', title)); content.append(node); return node;
         }
@@ -276,6 +291,9 @@
             for (const event of data.adjustments) history.append(element('p', `${date(event.created_at)} · товар #${event.catalog_id} · ${event.quantity} ед. · ${event.reason} · ${money(event.cost)}`));
         }
         if (uncertain) message('Осталась неподтверждённая операция. Нажмите «Проверить операцию», чтобы проверить её без дублей.', true);
-        else await refresh();
+        else {
+            await refresh();
+            if (categoryChange) await run('inventory-category-cost',categoryChange);
+        }
     }
 })();

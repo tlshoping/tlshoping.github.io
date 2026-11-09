@@ -2544,6 +2544,9 @@ nav,
     width: 100%;
     box-sizing: border-box;
     align-items: center;
+    flex-wrap: wrap;
+    gap: 12px 0;
+    padding-bottom: 12px;
 }
 .main_path:has(> .gift-toolbar) > .category_name,
 .path:has(> .gift-toolbar) > .category_name {
@@ -2556,6 +2559,17 @@ nav,
     align-items: center;
     flex-shrink: 0;
     margin: 0 16px 0 24px;
+    flex-wrap: wrap;
+    max-width: calc(100% - 40px);
+    min-width: 0;
+    gap: 8px;
+}
+.gift-toolbar > button { max-width: 100%; white-space: normal; overflow-wrap: anywhere; }
+@media (max-width: 499px) {
+    .main_path:has(> .gift-toolbar) > .gift-toolbar,
+    .path:has(> .gift-toolbar) > .gift-toolbar { width: calc(100% - 32px); margin: 0 16px; max-width: none; }
+    .main_path > .gift-toolbar > button,
+    .path > .gift-toolbar > button { width: 100%; }
 }
 .gift-button {
     border: 1px solid #d3d7dc;

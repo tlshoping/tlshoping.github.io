@@ -17,3 +17,11 @@ html[data-shop-theme="Samedy"] .inventory-panel .gift-button {
     background: var(--s-yellow); color: var(--s-input); border: 1px solid var(--s-line); border-radius: 4px;
 }
 .inventory-panel :disabled { opacity: .55; cursor: wait; }
+.inventory-bulk { margin: 16px; padding: 16px; border: 1px solid #cbd2da; border-radius: 8px; }
+.inventory-bulk :is(p,h3) { margin: 8px 0; line-height: 1.45; overflow-wrap: anywhere; }
+.inventory-bulk label { display: flex; flex-direction: column; gap: 8px; }
+.inventory-bulk input { box-sizing: border-box; width: 100%; min-width: 0; font-size: 16px; padding: 10px; }
+.inventory-bulk .gift-button { width: 100%; margin-top: 12px; min-height: 44px; white-space: normal; }
+html[data-shop-theme="Samedy"] .inventory-bulk { background: var(--s-panel); color: var(--s-paper); border-color: var(--s-line); }
+html[data-shop-theme="Samedy"] .inventory-bulk input { background: var(--s-input); color: var(--s-paper); border: 1px solid var(--s-line); }
+html[data-shop-theme="Samedy"] .inventory-bulk .gift-button { background: var(--s-yellow); color: var(--s-input); }
