@@ -1,0 +1,19 @@
+.inventory-panel .inventory-row {
+    border: 1px solid #cbd2da; border-radius: 8px; padding: 12px; margin: 12px 0;
+    display: flex; flex-direction: column; gap: 8px; overflow-wrap: anywhere;
+}
+.inventory-panel p { white-space: pre-line; line-height: 1.45; margin: 8px 0; overflow-wrap: anywhere; }
+.inventory-panel .gift-button { min-height: 44px; white-space: normal; }
+.inventory-panel :is(input, select) { font-size: 16px; }
+.inventory-panel .gift-header { flex-wrap: wrap; }
+.inventory-panel [hidden] { display: none !important; }
+html[data-shop-theme="Samedy"] .inventory-panel { background: var(--s-panel); color: var(--s-paper); }
+html[data-shop-theme="Samedy"] .inventory-panel .inventory-row { border-color: var(--s-line); background: var(--s-input); }
+html[data-shop-theme="Samedy"] .inventory-panel .gift-hint { color: var(--s-muted); }
+html[data-shop-theme="Samedy"] .inventory-panel :is(input, select) {
+    background-color: var(--s-panel); color: var(--s-paper); border-color: var(--s-line);
+}
+html[data-shop-theme="Samedy"] .inventory-panel .gift-button {
+    background: var(--s-yellow); color: var(--s-input); border: 1px solid var(--s-line); border-radius: 4px;
+}
+.inventory-panel :disabled { opacity: .55; cursor: wait; }

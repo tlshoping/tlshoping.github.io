@@ -2,7 +2,7 @@
     const nativeFetch = window.fetch.bind(window);
     const reads = new Set(['get-pickup-points', 'get-bot-settings', 'get-user', 'get-category',
         'get-cart', 'get-stop', 'courier-availability', 'get-order', 'order-shadow-status', 'search',
-        'gift-settings', 'maps/key']);
+        'gift-settings', 'inventory-settings', 'maps/key']);
     const pending = new Map();
     const cache = new Map();
     let cacheVersion = 0;
