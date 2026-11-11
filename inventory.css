@@ -37,3 +37,32 @@ html[data-shop-theme="Samedy"] .inventory-bulk .gift-button { background: var(--
 html[data-shop-theme="Samedy"] .inventory-card select { background: var(--s-input); color: var(--s-paper); border-color: var(--s-line); }
 html[data-shop-theme="Samedy"] .inventory-document,
 html[data-shop-theme="Samedy"] .inventory-card .inventory-row { border-color: var(--s-line); }
+.inventory-initial-panel { max-width: 920px; }
+.inventory-initial-panel textarea {
+    box-sizing: border-box; width: 100%; min-width: 0; padding: 10px; font: inherit; font-size: 16px; resize: vertical;
+}
+.inventory-initial-panel .inventory-initial-checkbox { flex-direction: row; align-items: center; }
+.inventory-initial-panel .inventory-initial-checkbox input { width: auto; flex: 0 0 auto; }
+.inventory-initial-table { width: 100%; table-layout: fixed; border-collapse: collapse; margin: 16px 0; }
+.inventory-initial-table :is(th,td) {
+    padding: 10px; border: 1px solid #cbd2da; text-align: left; overflow-wrap: anywhere; vertical-align: middle;
+}
+.inventory-initial-table input { min-width: 0; width: 100%; }
+.inventory-initial-table thead th:first-child { width: 32%; }
+html[data-shop-theme="Samedy"] .inventory-initial-panel textarea {
+    background: var(--s-input); color: var(--s-paper); border: 1px solid var(--s-line);
+}
+html[data-shop-theme="Samedy"] .inventory-initial-table :is(th,td) { border-color: var(--s-line); }
+@media (max-width: 600px) {
+    .inventory-initial-table { display: block; }
+    .inventory-initial-table thead {
+        position: absolute; width: 1px; height: 1px; padding: 0; overflow: hidden; clip-path: inset(50%);
+    }
+    .inventory-initial-table tbody { display: block; }
+    .inventory-initial-table tbody tr {
+        display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr); margin: 12px 0;
+    }
+    .inventory-initial-table tbody th { grid-column: 1 / -1; }
+    .inventory-initial-table td:last-child { grid-column: 1 / -1; }
+    .inventory-initial-table td::before { display: block; content: attr(data-label); font-size: 13px; margin-bottom: 6px; }
+}
