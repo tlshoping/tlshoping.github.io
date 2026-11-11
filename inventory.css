@@ -25,3 +25,15 @@ html[data-shop-theme="Samedy"] .inventory-panel .gift-button {
 html[data-shop-theme="Samedy"] .inventory-bulk { background: var(--s-panel); color: var(--s-paper); border-color: var(--s-line); }
 html[data-shop-theme="Samedy"] .inventory-bulk input { background: var(--s-input); color: var(--s-paper); border: 1px solid var(--s-line); }
 html[data-shop-theme="Samedy"] .inventory-bulk .gift-button { background: var(--s-yellow); color: var(--s-input); }
+.inventory-card :is(input,select), .inventory-panel :is(input,select) {
+    box-sizing: border-box; width: 100%; min-width: 0; max-width: 100%; padding: 10px; font-size: 16px;
+}
+.inventory-card label,.inventory-panel label { display: flex; flex-direction: column; gap: 8px; margin: 12px 0; }
+.inventory-card [hidden],.inventory-panel [hidden] { display: none !important; }
+.inventory-document { border: 1px solid #cbd2da; border-radius: 8px; padding: 12px; margin: 12px 0; }
+.inventory-document summary { cursor: pointer; font-weight: 600; overflow-wrap: anywhere; }
+.inventory-card .inventory-row { margin: 10px 0; padding: 10px; border-bottom: 1px solid #cbd2da; }
+.inventory-card :disabled { opacity: .55; }
+html[data-shop-theme="Samedy"] .inventory-card select { background: var(--s-input); color: var(--s-paper); border-color: var(--s-line); }
+html[data-shop-theme="Samedy"] .inventory-document,
+html[data-shop-theme="Samedy"] .inventory-card .inventory-row { border-color: var(--s-line); }

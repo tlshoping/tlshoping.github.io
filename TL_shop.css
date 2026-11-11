@@ -2550,7 +2550,7 @@ nav,
 }
 .main_path:has(> .gift-toolbar) > .category_name,
 .path:has(> .gift-toolbar) > .category_name {
-    flex: 1;
+    flex: 1 1 160px;
     min-width: 0;
     overflow-wrap: anywhere;
 }

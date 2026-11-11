@@ -173,7 +173,6 @@ function create_categories(json_data, category_id, type, searchRequest, pickupPo
                             </div>
                             <input class="cart_name_input_change" type="text" value="${json_data[i]['title']}" placeholder="Название" />
                             <textarea class="cart_discript_input_change" type="text" placeholder="Описание" rows="4">${json_data[i]['description']}</textarea>
-                            <input class="cart_count_input_change hide" type="text" value="${json_data[i]['count']}" placeholder="Количество" />
                             <input class="cart_price_input_change hide" type="text" value="${json_data[i]['price']}" placeholder="Цена" />
                         </div>
                         <div class="save_category_change disactive_but ${adminHide} ${managerHide}" type="button">
@@ -314,7 +313,7 @@ function create_categories(json_data, category_id, type, searchRequest, pickupPo
                         </div>
                         <input class="cart_name_input_change ${managerHide}" type="text" value="${json_data[i]['title']}" placeholder="Название" />
                         <textarea class="cart_discript_input_change ${managerHide}" type="text" placeholder="Описание" rows="4">${json_data[i]['description']}</textarea>
-                        <input class="cart_count_input_change" type="text" value="${json_data[i]['count']}" placeholder="Количество" />
+                        <p class="cart_count">В наличии: ${json_data[i]['count']} шт. Изменение через поступления.</p>
                         <input class="cart_price_input_change ${managerHide}" type="text" value="${json_data[i]['price']}" placeholder="Цена" />
                     </div>
                     <div class="save_category_change disactive_but ${adminHide}" type="button">
@@ -386,7 +385,7 @@ function create_categories(json_data, category_id, type, searchRequest, pickupPo
                         </div>
                         <input class="cart_name_input" type="text" placeholder="Название *" />
                         <textarea class="cart_discript_input" type="text" placeholder="Описание" rows="4"></textarea>
-                        <input class="cart_count_input hide" type="text" placeholder="Количество *" />
+                        <p class="gift-hint">Новый товар создаётся с остатком 0. Пополните его через поступление.</p>
                         <input class="cart_price_input hide" type="text" placeholder="Цена *" />
                     </div>
                     <div class="save_category disactive_but">

@@ -3,7 +3,7 @@
     function load(name) {
         if (!loaded.has(name)) loaded.set(name, new Promise((resolve, reject) => {
             const script = document.createElement('script');
-            script.src = `${name}?v=20261110-history-cost`;
+            script.src = `${name}?v=20261111-documents`;
             script.onerror = () => {
                 script.remove();
                 loaded.delete(name);
@@ -24,7 +24,7 @@
             if (!['owner', 'admin', 'manager', 'logistician'].includes(role)) return;
             await load('admin.js');
             await Promise.all([load('gifts.js'), ...(['owner', 'admin'].includes(role)
-                ? [load('pointBranding.js'), load('inventory.js')] : [])]);
+                ? [load('pointBranding.js'), load('inventoryDocuments.js')] : [])]);
         },
         gifts: () => load('gifts.js')
     };

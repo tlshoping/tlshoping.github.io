@@ -11,55 +11,73 @@ function profile_manag() {
 async function createOrdersList(page, limit) {
     try {
         const orderRecords = await getOrderRecords(page, limit, user_data.data.secret_key);
-        let orders = ordersList.getElementsByClassName('order');
-        for (let i = 0; i < orders.length;) {
-            orders[0].remove();
-        }
-
-        console.log(orderRecords);
-
-        for (let i = 0; i < orderRecords.records.length; i++) {
-
-            let order = document.createElement('div');
-            ordersList.append(order);
-            order.outerHTML = `
-            <div class="order">
+        const fragment = document.createDocumentFragment();
+        const records = orderRecords.records.filter(record => record && typeof record === 'object');
+        for (const record of records) {
+            const order = document.createElement('div');
+            order.className = 'order';
+            order.innerHTML = `
                 <div class="order_system_info">
-                    <p class="order_num">${orderRecords.records[i].id}</p>
-                    <p class="order_time">${new Date(orderRecords.records[i].order_time).toLocaleString()}</p>
+                    <p class="order_num"></p>
+                    <p class="order_time"></p>
                 </div>
                 <div class="order_products">
                 </div>
                 <div class="order_status">
-                    <p class="order_status_text">${orderRecords.records[i].status === 'new' ? 'Новый' : orderRecords.records[i].status === 'collected' ? 'Собран' : orderRecords.records[i].status === 'on_the_way' ? 'В пути' : orderRecords.records[i].status === 'completed' ? 'Завершён' : ''}</p>
-                    <p class="order_full_price">${orderRecords.records[i].sum} ₽</p>
+                    <p class="order_status_text"></p>
+                    <p class="order_full_price"></p>
                 </div>
-            </div>
-            `
-
-            for (let j = 0; j < orderRecords.records[i].items.length; j++) {
-
-                let product = document.createElement('div');
-                ordersList.getElementsByClassName('order_products')[i].append(product);
-                product.outerHTML = `
-                    <div class="order_product">
+            `;
+            order.querySelector('.order_num').textContent = record.id ?? '';
+            order.querySelector('.order_time').textContent = new Date(record.order_time).toLocaleString();
+            order.querySelector('.order_status_text').textContent = {
+                new: 'Новый', collected: 'Собран', on_the_way: 'В пути', completed: 'Завершён'
+            }[record.status] || '';
+            order.querySelector('.order_full_price').textContent = `${record.sum ?? 0} ₽`;
+            const items = Array.isArray(record.items)
+                ? record.items.filter(item => item && typeof item === 'object') : [];
+            const products = order.querySelector('.order_products');
+            if (!items.length) {
+                const empty = document.createElement('p');
+                empty.className = 'order_product_name';
+                empty.textContent = 'Состав заказа недоступен';
+                products.append(empty);
+            }
+            for (const item of items) {
+                const product = document.createElement('div');
+                product.className = 'order_product';
+                product.innerHTML = `
                         <div class="order_product_info">
                             <div class="order_container">
-                                <img class="order_img" src="${url + '/' + orderRecords.records[i].items[j].img}?t=${Date.now()}" loading="lazy" fetchpriority="auto" aria-hidden="true" draggable="false">
+                                <img class="order_img" loading="lazy" fetchpriority="auto" aria-hidden="true" draggable="false">
                             </div>
                             <div class="order_product_ident">
-                                <p class="order_product_category">${orderRecords.records[i].items[j].parent_title}</p>
-                                <p class="order_product_name">${orderRecords.records[i].items[j].title}${orderRecords.records[i].items[j].is_gift ? ' · Подарок (0 ₽)' : ''}</p>
+                                <p class="order_product_category"></p>
+                                <p class="order_product_name"></p>
                             </div>
                         </div>
-                        <p class="order_product_price">X ${orderRecords.records[i].items[j].count}</p>
-                    </div>
-                `
-
-            };
-
+                        <p class="order_product_price"></p>
+                `;
+                product.querySelector('.order_product_category').textContent = item.parent_title || '';
+                product.querySelector('.order_product_name').textContent =
+                    `${item.title || 'Товар удалён'}${item.is_gift ? ' · Подарок (0 ₽)' : ''}`;
+                product.querySelector('.order_product_price').textContent = `X ${item.count ?? 0}`;
+                const image = product.querySelector('.order_img');
+                if (typeof item.img === 'string' && item.img.trim()) {
+                    image.src = `${url}/${item.img}?t=${Date.now()}`;
+                } else {
+                    image.remove();
+                    const container = product.querySelector('.order_container');
+                    container.textContent = '?';
+                    container.setAttribute('aria-label', 'Картинки пока нет');
+                }
+                products.append(product);
+            }
+            fragment.append(order);
         }
-
+        // Commit only after the entire new list renders successfully.
+        for (const order of [...ordersList.getElementsByClassName('order')]) order.remove();
+        ordersList.append(fragment);
         loading.classList.add('hide');
 
     } catch (error) {

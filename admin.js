@@ -72,7 +72,6 @@ function admAddCategory(pickupPointData) {
     let typeCategory = document.getElementsByClassName('type_category')[0];
     let typeProduct = document.getElementsByClassName('type_product')[0];
     let cartNameInput = document.getElementsByClassName('cart_name_input')[0];
-    let cartCountInput = document.getElementsByClassName('cart_count_input')[0];
     let cartPriceInput = document.getElementsByClassName('cart_price_input')[0];
     let cartDiscriptInput = document.getElementsByClassName('cart_discript_input')[0];
     let saveCategory = document.getElementsByClassName('save_category')[0];
@@ -86,7 +85,7 @@ function admAddCategory(pickupPointData) {
                 saveCategory.classList.add('disactive_but');
             };
         } else if (typeProduct.classList.contains('choiced')) {
-            if (cartNameInput.value != '' && cartCountInput.value != '' && cartPriceInput.value != '') {
+            if (cartNameInput.value != '' && cartPriceInput.value != '') {
                 saveCategory.classList.remove('disactive_but');
             } else {
                 saveCategory.classList.add('disactive_but');
@@ -112,7 +111,6 @@ function admAddCategory(pickupPointData) {
     typeCategory.addEventListener('click', () => {
         typeCategory.classList.add('choiced');
         typeProduct.classList.remove('choiced');
-        cartCountInput.classList.add('hide');
         cartPriceInput.classList.add('hide');
         addCartCheker();
     })
@@ -120,7 +118,6 @@ function admAddCategory(pickupPointData) {
     typeProduct.addEventListener('click', () => {
         typeProduct.classList.add('choiced');
         typeCategory.classList.remove('choiced');
-        cartCountInput.classList.remove('hide');
         cartPriceInput.classList.remove('hide');
         addCartCheker();
     })
@@ -130,10 +127,6 @@ function admAddCategory(pickupPointData) {
     })
 
     cartDiscriptInput.addEventListener('input', () => {
-        addCartCheker();
-    })
-
-    cartCountInput.addEventListener('input', () => {
         addCartCheker();
     })
 
@@ -147,7 +140,7 @@ function admAddCategory(pickupPointData) {
             if (typeCategory.classList.contains('choiced')) {
                 create_category(pickupPointData, 0, 0, cartNameInput.value, categoryList.id, cartDiscriptInput.value, imgBase64);
             } else if (typeProduct.classList.contains('choiced')) {
-                create_category(pickupPointData, 0, 7, cartNameInput.value, categoryList.id, cartDiscriptInput.value, imgBase64, cartCountInput.value, cartPriceInput.value);
+                create_category(pickupPointData, 0, 7, cartNameInput.value, categoryList.id, cartDiscriptInput.value, imgBase64, 0, cartPriceInput.value);
             };
         }
     });
@@ -161,7 +154,6 @@ function admChangeCategory(pickupPointData) {
         let fileInput = document.getElementById('fileInput_' + cartInfo[i].id.split('_')[1]);
         let cartNameInput = document.getElementsByClassName('cart_name_input_change')[i];
         let cartDiscriptInput = document.getElementsByClassName('cart_discript_input_change')[i];
-        let cartCountInput = document.getElementsByClassName('cart_count_input_change')[i];
         let cartPriceInput = document.getElementsByClassName('cart_price_input_change')[i];
         let saveCategory = document.getElementsByClassName('save_category_change')[i];
         let imgBase64;
@@ -176,7 +168,7 @@ function admChangeCategory(pickupPointData) {
                 };
             } else if (cartInfo[i].id.split('_')[0] == 'product') {
 
-                if (cartNameInput.value != '' && cartCountInput.value != '' && cartPriceInput.value != '') {
+                if (cartNameInput.value != '' && cartPriceInput.value != '') {
                     saveCategory.classList.remove('disactive_but');
                 } else {
                     saveCategory.classList.add('disactive_but');
@@ -207,10 +199,6 @@ function admChangeCategory(pickupPointData) {
             addCartCheker();
         })
 
-        cartCountInput.addEventListener('input', () => {
-            addCartCheker();
-        })
-
         cartPriceInput.addEventListener('input', () => {
             addCartCheker();
         })
@@ -221,7 +209,7 @@ function admChangeCategory(pickupPointData) {
                 if (cartInfo[i].id.split('_')[0] == 'category') {
                     create_category(pickupPointData, cartInfo[i].id.split('_')[1], 0, cartNameInput.value, categoryList.id, cartDiscriptInput.value, imgBase64);
                 } else if (cartInfo[i].id.split('_')[0] == 'product') {
-                    create_category(pickupPointData, cartInfo[i].id.split('_')[1], 7, cartNameInput.value, categoryList.id, cartDiscriptInput.value, imgBase64, cartCountInput.value, cartPriceInput.value);
+                    create_category(pickupPointData, cartInfo[i].id.split('_')[1], 7, cartNameInput.value, categoryList.id, cartDiscriptInput.value, imgBase64, undefined, cartPriceInput.value);
                 };
             }
         })

@@ -197,18 +197,9 @@ async function openGiftManagement(point, selectedCategoryId) {
             const title = document.createElement('p');
             title.textContent = `${product.title} (#${product.id})`;
             row.append(title);
-            const input = document.createElement('input');
-            input.type = 'number'; input.min = '0'; input.step = '1'; input.value = product.count;
-            input.setAttribute('aria-label', `Остаток ${product.title}`);
-            row.append(input);
-            const save = document.createElement('button');
-            save.className = 'gift-button'; save.type = 'button'; save.textContent = 'Сохранить остаток';
-            save.onclick = () => run(save, async () => {
-                if (!input.value || !Number.isInteger(Number(input.value)) || Number(input.value) < 0) throw new Error('Введите целый неотрицательный остаток');
-                await giftApi('gift-stock-save', point, { id: product.id, count: Number(input.value) });
-                await load();
-            });
-            row.append(save);
+            const count = document.createElement('p');
+            count.textContent = `Остаток: ${product.count}. Изменяется только через поступление.`;
+            row.append(count);
             if (settings.canEdit && product.gift_only) {
                 const edit = document.createElement('button');
                 edit.type = 'button'; edit.className = 'gift-button'; edit.textContent = 'Редактировать';
@@ -216,6 +207,7 @@ async function openGiftManagement(point, selectedCategoryId) {
                 row.append(edit);
             }
             stocks.append(row);
+            if (typeof mountInventoryProduct === 'function') mountInventoryProduct(point,row,Number(product.id));
         }
         if (!settings.canEdit) return;
         const form = document.createElement('form');
@@ -225,7 +217,7 @@ async function openGiftManagement(point, selectedCategoryId) {
             <p class="gift-hint">Отдельный подарочный товар не продаётся в каталоге. Цена подарка всегда 0 ₽.</p>
             <label>Название<input name="title" maxlength="255" required></label>
             <label>Описание<textarea name="description" maxlength="4000" rows="3"></textarea></label>
-            <label>Остаток на этой точке<input name="count" type="number" min="0" step="1" value="0" required></label>
+            <p class="gift-hint">Новый подарок создаётся с остатком 0. Пополнение — через поступление.</p>
             <label>Изображение<input name="image" type="file" accept="image/*"></label>
             <div class="gift-actions"><button class="gift-button" type="submit">Создать подарок</button>
                 <button class="gift-button gift-new" type="button">Новый подарок</button></div>`;
@@ -235,7 +227,6 @@ async function openGiftManagement(point, selectedCategoryId) {
             editingId = product.id;
             form.elements.title.value = product.title;
             form.elements.description.value = product.description || '';
-            form.elements.count.value = product.count;
             form.elements.image.value = '';
             form.querySelector('.gift-form-title').textContent = `Редактировать подарок #${product.id}`;
             form.querySelector('[type="submit"]').textContent = 'Сохранить подарок';
@@ -263,7 +254,7 @@ async function openGiftManagement(point, selectedCategoryId) {
                 }
                 const result = await giftApi('gift-product-save', point, {
                     id: editingId, title: form.elements.title.value, description: form.elements.description.value,
-                    count: Number(form.elements.count.value), img_file: image
+                    count: 0, img_file: image
                 });
                 selectedGiftId = String(result.id);
                 await load();
