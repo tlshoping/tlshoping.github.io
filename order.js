@@ -1,40 +1,6 @@
-async function pollShadowOrderApproval(orderId) {
-    while (true) {
-        if (document.hidden || navigator.onLine === false) {
-            await new Promise(resolve => setTimeout(resolve, 3000));
-            continue;
-        }
-        try {
-            const response = await fetch(`https://${apiUrl}/api/V2/order-shadow-status`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    botId: bot_id,
-                    secretKey: secretKey,
-                    orderId: orderId
-                })
-            });
-
-            if (response.ok) {
-                const payload = await response.json();
-                if (payload?.data?.shadowStatus === 'approved' && payload?.data?.shadowMode === false) {
-                    window.close();
-                    Telegram.WebApp.close();
-                    return;
-                }
-            }
-        } catch (error) {
-            console.error('Error while polling shadow order:', error);
-        }
-
-        await new Promise((resolve) => setTimeout(resolve, 3000));
-    }
-}
-
 let orderRequestActive = false;
 let orderResultUncertain = false;
+let orderShadowPending = false;
 async function createOrder() {
     if (orderRequestActive) return;
     if (orderResultUncertain) {
@@ -68,9 +34,9 @@ async function createOrder() {
             bonuses: formData.bonuses,
             icoDateDelivery: formData.icoDateDelivery,
             icoDatePickup: formData.icoDatePickup,
-            deliveryPrice: parseFloat(selectedPickupPointData.delivery_price)
-                || parseFloat(basketMainList.deliveryDiscountedPrice)
-                || 0,
+            deliveryPrice: Number((selectedPickupPointData.delivery_is_nearest === false
+                ? basketMainList.deliveryFullPrice : basketMainList.deliveryDiscountedPrice)
+                ?? selectedPickupPointData.delivery_price ?? basketMainList.deliveryFullPrice ?? 0),
             coords: userCoords || null,
             source: 'bot'
         }
@@ -79,6 +45,7 @@ async function createOrder() {
         headers.append('Content-Type', 'application/json');
 
         loading.classList.remove('hide');
+        loading.dataset.checkoutLock = 'true';
         submitted = true;
         const response = await fetch(`https://${apiUrl}/api/V2/create-order`, {
             method: 'POST',
@@ -105,7 +72,8 @@ async function createOrder() {
         }
 
         if (payload?.shadowMode && payload?.orderId) {
-            await pollShadowOrderApproval(payload.orderId);
+            orderShadowPending = true;
+            clearTimeout(basketUpdateInterval);
             return;
         }
 
@@ -118,8 +86,11 @@ async function createOrder() {
             ? 'Ответ на оформление потерян. Заказ мог быть создан: проверьте историю или сообщения бота. Автоповтора не будет.'
             : error.message || 'Не удалось оформить заказ. Проверьте данные.');
     } finally {
-        orderRequestActive = false;
-        payBut.setAttribute('aria-disabled', String(orderResultUncertain));
-        loading.classList.add('hide');
+        if (!orderShadowPending) {
+            orderRequestActive = false;
+            payBut.setAttribute('aria-disabled', String(orderResultUncertain));
+            delete loading.dataset.checkoutLock;
+            loading.classList.add('hide');
+        }
     }
 }

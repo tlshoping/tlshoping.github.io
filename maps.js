@@ -417,6 +417,13 @@ async function getNearestPoint(toLongitude, toLatitude) {
     }
 }
 
+function calculatePointDeliveryPrice(point, nearest, cartSum = 0) {
+    const base = Number((nearest ? point.delivery_discounted_price : point.delivery_full_price) ?? 0);
+    const threshold = point.min_discount_sum == null ? Infinity : Number(point.min_discount_sum);
+    const discount = cartSum >= threshold ? Number(point.discount_sum ?? 0) : 0;
+    return Math.max(0, base - discount);
+}
+
 function pickupPointsManage(pickupPointsList, type) { // Генерация точек самовывоза
 
     if (basketUpdateInterval) {
@@ -435,14 +442,14 @@ function pickupPointsManage(pickupPointsList, type) { // Генерация то
         let deliveryPriceView = 'hide';
         console.log(pickupPointsDataSort);
         let deliveryPrice = 0;
+        visiblePoints[i].delivery_is_nearest = type === 'sort' && i === 0;
+        visiblePoints[i].delivery_price = Number((visiblePoints[i].delivery_is_nearest
+            ? visiblePoints[i].delivery_discounted_price : visiblePoints[i].delivery_full_price) ?? 0);
         if (type == 'sort') {
             deliveryPriceView = ''
-            visiblePoints[i].delivery_price = parseFloat(visiblePoints[i].delivery_full_price);
-            deliveryPrice = parseFloat(visiblePoints[i].delivery_full_price) - parseFloat(visiblePoints[i].delivery_discounted_price);
-            if (i == 0) {
-                visiblePoints[i].delivery_price = parseFloat(visiblePoints[i].delivery_discounted_price);
-                deliveryPrice = parseFloat(visiblePoints[i].delivery_full_price) - parseFloat(visiblePoints[i].delivery_discounted_price) - parseFloat(visiblePoints[i].discount_sum);
-            }
+            const cart = typeof basketMainList === 'undefined' ? null : basketMainList;
+            const sum = Number(cart?.pickupPointId) === Number(visiblePoints[i].id) ? Number(cart.sum || 0) : 0;
+            deliveryPrice = calculatePointDeliveryPrice(visiblePoints[i], visiblePoints[i].delivery_is_nearest, sum);
         }
         
         let pickup = document.createElement('li');

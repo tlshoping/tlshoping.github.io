@@ -11,6 +11,7 @@ let cartRevision = 0;
 let cartNeedsReconcile = false;
 const validCart = value => Boolean(value.data && Array.isArray(value.data.items));
 function renderBasketState(data) {
+    if (document.getElementById('loading')?.dataset.checkoutLock === 'true') return;
     // Checkout-hour loading must not hold the cart mutation queue or the whole-page spinner.
     Promise.resolve(create_basket(data)).catch(error => showShopFailure(error));
 }
@@ -71,6 +72,7 @@ function delete_all_product() { return mutateCart('remove-all-cart', {}); }
 
 function startBasketRefresh(immediate = false) {
     clearTimeout(basketUpdateInterval);
+    if (document.getElementById('loading')?.dataset.checkoutLock === 'true') return;
     if (document.hidden || navigator.onLine === false || !user_data?.data?.secret_key) return;
     basketUpdateInterval = setTimeout(async () => {
         await get_basket({ background: true });
@@ -692,7 +694,11 @@ function createPrice() {
 
     let fullDeliveryPrice;
 
-    if (selectedPickupPointData.delivery_price != null) {
+    const configuredPrice = selectedPickupPointData.delivery_is_nearest === false
+        ? basketMainList.deliveryFullPrice : basketMainList.deliveryDiscountedPrice;
+    if (configuredPrice != null) {
+        fullDeliveryPrice = Number(configuredPrice);
+    } else if (selectedPickupPointData.delivery_price != null) {
         fullDeliveryPrice = parseFloat(selectedPickupPointData.delivery_price);
     } else {
         fullDeliveryPrice = parseFloat(basketMainList.deliveryDiscountedPrice) || 0;
