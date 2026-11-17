@@ -125,16 +125,43 @@
         if (!items.length) list.append(node('p','Изменений пока нет','gift-hint'));
         return list;
     }
+    function receiptTotals(items,kind=null) {
+        const totals={quantity:0,cost:0,retail:0,unknownCost:0,unknownRetail:0};
+        for (const item of items) {
+            if (!['receive','writeoff'].includes(item.kind) || (kind && item.kind!==kind)) continue;
+            const quantity=Number(item.quantity);
+            if (!Number.isSafeInteger(quantity) || quantity<=0) continue;
+            totals.quantity+=quantity;
+            for (const [field,total,unknown] of [
+                ['unit_cost','cost','unknownCost'],['retail_price','retail','unknownRetail']
+            ]) {
+                const value=item[field],price=Number(value);
+                if (value==null || value==='' || !Number.isFinite(price) || price<0) totals[unknown]+=quantity;
+                else totals[total]+=Math.round(price*100)*quantity;
+            }
+        }
+        return totals;
+    }
+    function totalMoney(cents,unknown,quantity) {
+        if (unknown && unknown===quantity) return `неизвестна (${unknown} ед.)`;
+        return `${money(cents/100)}${unknown?` + неизвестна для ${unknown} ед.`:''}`;
+    }
+    function receiptValues(totals) {
+        return `Закупочная: ${totalMoney(totals.cost,totals.unknownCost,totals.quantity)} · `+
+            `Розничная (текущие цены): ${totalMoney(totals.retail,totals.unknownRetail,totals.quantity)}`;
+    }
     function history(s,container,data,productId=null) {
         const expanded=new Set([...container.querySelectorAll('details[open]')].map(el=>el.dataset.id));
         const fragment=document.createDocumentFragment();
         for (const receipt of data.receipts) {
-            const items=productId==null?receipt.items:(receipt.items || []).filter(item=>Number(item.catalog_id)===productId);
+            const items=productId==null?(receipt.items || []):(receipt.items || []).filter(item=>Number(item.catalog_id)===productId);
             if (productId!=null && !items.length) continue;
             const detail=node('details',null,'inventory-document');
             detail.dataset.id=String(receipt.id);detail.open=expanded.has(String(receipt.id));
             const status=receipt.cancelled_at?'завершена · отменена':receipt.status==='draft'?'не завершена':'завершена';
-            detail.append(node('summary',`${receipt.name || receipt.supplier || 'Поступление'} #${receipt.id} · ${status}`));
+            const totals=receiptTotals(items);
+            detail.append(node('summary',`${receipt.name || receipt.supplier || 'Поступление'} #${receipt.id} · ${status} · `+
+                `Позиций: ${items.length} · ${receiptValues(totals)}`));
             const expand=event=>{
                 if ((event && !detail.isConnected) || !detail.open || detail.dataset.loaded) return;
                 detail.dataset.loaded='true';
@@ -142,9 +169,10 @@
                 if (receipt.note) detail.append(node('p',receipt.note));
                 if (receipt.is_initial) detail.append(node('p','Оценка существующих остатков и истории не увеличивает количество товаров.','gift-hint'));
                 else {
-                    const incoming=items.filter(e=>e.kind==='receive').reduce((n,e)=>n+Number(e.quantity),0);
-                    const outgoing=items.filter(e=>e.kind==='writeoff').reduce((n,e)=>n+Number(e.quantity),0);
-                    detail.append(node('p',`Пополнение: ${incoming} ед. · Списание: ${outgoing} ед. · Изменение остатка: ${incoming-outgoing} ед.`));
+                    const incoming=receiptTotals(items,'receive'),outgoing=receiptTotals(items,'writeoff');
+                    detail.append(node('p',`Пополнение: ${incoming.quantity} ед. · ${receiptValues(incoming)}\n`+
+                        `Списание: ${outgoing.quantity} ед. · ${receiptValues(outgoing)}\n`+
+                        `Изменение остатка: ${incoming.quantity-outgoing.quantity} ед.`));
                 }
                 detail.append(entries(s,receipt,items,productId==null && receipt.status==='draft'));
                 if (productId==null && receipt.status==='draft') detail.append(button('Завершить поступление',()=>{
