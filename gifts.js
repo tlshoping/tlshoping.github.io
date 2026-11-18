@@ -184,6 +184,13 @@ async function openGiftManagement(point, selectedCategoryId) {
         stocks.className = 'gift-section';
         stocks.innerHTML = '<h3>Подарочные товары и остатки</h3><p class="gift-hint">Остатки доступны только сотрудникам. У обычного товара, выбранного подарком, остаток общий с продажами.</p>';
         content.append(stocks);
+        if (settings.canEdit && typeof openGiftInitialPrices === 'function') {
+            const initial = document.createElement('button');
+            initial.type = 'button'; initial.className = 'gift-button';
+            initial.textContent = 'Назначить начальные цены подарков';
+            initial.onclick = () => openGiftInitialPrices(point);
+            stocks.append(initial);
+        }
         const configured = new Set(settings.promotions.map(row => Number(row.gift_catalog_id)));
         const giftProducts = settings.products.filter(row => row.gift_only || configured.has(Number(row.id)));
         if (!giftProducts.length) {

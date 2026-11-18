@@ -242,10 +242,12 @@
         if (!/^\d{1,10}(?:\.\d{1,2})?$/.test(normalized)) throw new Error('Введите неотрицательную цену с максимум двумя знаками после запятой');
         return normalized;
     }
-    function openInitial(s,category) {
+    function openInitial(s,category,gifts=false) {
+        const scope=()=>gifts?{gift_products:true}:{category_id:category,include_subcategories:include.checked};
         document.getElementById('inventoryInitialEditor')?.remove();
         const overlay=node('section',null,'gift-overlay');overlay.id='inventoryInitialEditor';
-        overlay.setAttribute('role','dialog');overlay.setAttribute('aria-modal','true');overlay.setAttribute('aria-label','Начальные цены категории');
+        overlay.setAttribute('role','dialog');overlay.setAttribute('aria-modal','true');
+        overlay.setAttribute('aria-label',gifts?'Начальные цены подарков':'Начальные цены категории');
         const panel=node('div',null,'gift-panel inventory-panel inventory-initial-panel'),header=node('header',null,'gift-header');
         const focus=document.activeElement,values=new Map();
         let rows=[],revision=0,loading=true,dirty=false;
@@ -298,16 +300,15 @@
                 if (!items.length) throw new Error('Введите хотя бы одну закупочную цену');
                 if (items.length>1000) throw new Error('За один раз можно добавить не более 1000 цен');
                 notice.textContent='';
-                const result=await run(s,'inventory-initial-prices',{category_id:category,include_subcategories:include.checked,
-                    items,request_key:crypto.randomUUID()});
+                const result=await run(s,'inventory-initial-prices',{...scope(),items,request_key:crypto.randomUUID()});
                 saved(result);
             } catch (error) {notice.textContent=error.message;}
         });
         async function loadRows() {
             const current=++revision;loading=true;save.disabled=true;insert.disabled=true;
-            notice.textContent='Загружаю товары категории...';
+            notice.textContent=gifts?'Загружаю подарочные товары...':'Загружаю товары категории...';
             try {
-                const products=(await api(s,'inventory-initial-products',{category_id:category,include_subcategories:include.checked})).data;
+                const products=(await api(s,'inventory-initial-products',scope())).data;
                 if (!overlay.isConnected || current!==revision) return;
                 if (!Array.isArray(products)) throw new Error('Не удалось прочитать товары категории');
                 rows=products.map((product,index)=>{
@@ -331,16 +332,17 @@
                     td.append(input);tr.append(td);return {product,input,tr};
                 });
                 body.replaceChildren(...rows.map(row=>row.tr));
-                notice.textContent=rows.length?`Позиций для назначения цены: ${rows.length}`:'Нет неизвестных цен или новых товаров без остатка. Можно включить подкатегории.';
+                notice.textContent=rows.length?`Позиций для назначения цены: ${rows.length}`:
+                    'Нет неизвестных цен или новых товаров без остатка.'+(gifts?'':' Можно включить подкатегории.');
                 loading=false;save.disabled=!rows.length;insert.disabled=!rows.length;
             } catch (error) {
                 if (overlay.isConnected && current===revision) notice.textContent=error.message;
             }
         }
         include.onchange=loadRows;
-        panel.append(header,node('p',`${s.point.title} · неизвестные цены категории и новые товары без остатка`,'gift-point'),
+        panel.append(header,node('p',`${s.point.title} · ${gifts?'подарочные товары':'неизвестные цены категории и новые товары без остатка'}`,'gift-point'),
             node('p','Каждому товару назначается своя цена. Пустое поле — не менять, в том числе уже сохранённую строку черновика. 0 — явно нулевая стоимость. Известные цены не меняются. Цены старых продаж и остатка применятся только после завершения «Начального».','gift-hint'),
-            includeLabel,notice,button('Обновить товары',()=>!s.busy && !s.pending && loadRows()),
+            ...(!gifts?[includeLabel]:[]),notice,button('Обновить товары',()=>!s.busy && !s.pending && loadRows()),
             pasteLabel,insert,node('p','Порядок цен из Excel должен совпадать с порядком товаров в таблице. Пустые строки пропускаются. Между полями можно переходить Tab или Enter.','gift-hint'),
             table,save);
         overlay.append(panel);document.body.append(overlay);
@@ -355,6 +357,10 @@
     window.mountInventoryProduct=(point,card,id)=>{
         if (!allowed()) return;
         const s=state(point);mountProduct(s,card,id);load(s);
+    };
+    window.openGiftInitialPrices=point=>{
+        if (!allowed()) return;
+        openInitial(state(point),null,true);
     };
     window.mountInventoryManagement=point=>{
         if (!allowed()) return;
