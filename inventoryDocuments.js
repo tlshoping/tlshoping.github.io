@@ -115,7 +115,7 @@
         for (const item of items) {
             const row=node('div',null,'inventory-row');
             const source=item.source_lot_id?` · из партии #${item.source_lot_id}`:'';
-            row.append(node('p',`${receipt.is_initial && item.kind==='receive'?'Начальный остаток / история':labels[item.kind] || item.kind}: ${item.title}\n`+
+            row.append(node('p',`${receipt.is_initial && item.kind==='receive'?'Начальный остаток / история':labels[item.kind] || item.kind}: ${item.title} · Категория: ${item.category || 'Без категории'}\n`+
                 (item.kind==='cost'?`Неизвестные цены остатков и продаж → ${money(item.unit_cost)}`:
                     `${item.quantity} × ${money(item.unit_cost)}${source}${item.kind==='receive' && receipt.status==='completed'?` · осталось ${item.remaining}`:''}`)));
             if (item.note) row.append(node('p',item.note,'gift-hint'));
@@ -178,7 +178,8 @@
                 }
                 detail.append(entries(s,receipt,items,productId==null && receipt.status==='draft'));
                 if (productId==null && !receipt.cancelled_at && items.some(item=>
-                    item.kind==='receive' || (receipt.status==='draft' && item.kind==='cost'))) {
+                    item.kind==='receive' || (receipt.status==='draft' && item.kind==='cost') ||
+                    (item.kind==='writeoff' && item.unit_cost==null))) {
                     detail.append(button('Редактировать закупочные цены',()=>openInitial(s,null,false,receipt)));
                 }
                 if (productId==null && receipt.status==='draft') detail.append(button('Завершить поступление',()=>{
@@ -315,7 +316,7 @@
                 if (items.length>1000) throw new Error('За один раз можно добавить не более 1000 цен');
                 notice.textContent='';
                 if (receipt && !confirm(receipt.status==='completed'?
-                    'Изменить цены завершённой поставки? Пересчитаются связанные продажи, подарки и списания, прибыль и резерв. Количество товара не изменится.':
+                    'Изменить цены завершённой поставки? Цены пополнений пересчитают связанные продажи и списания. Цена неизвестного списания изменит только его расходы, без переоценки исходной партии. Количество товара не изменится.':
                     'Сохранить новые цены в черновике поставки? Они применятся после его завершения.')) return;
                 const result=await run(s,receipt?'inventory-receipt-prices':'inventory-initial-prices',
                     {...scope(),items,request_key:crypto.randomUUID()});
@@ -330,7 +331,8 @@
                 if (!overlay.isConnected || current!==revision) return;
                 if (!Array.isArray(products)) throw new Error('Не удалось прочитать товары категории');
                 rows=products.map((product,index)=>{
-                    const tr=node('tr'),title=node('th',receipt?`${product.title} · строка #${product.id}`:product.title);
+                    const tr=node('tr'),title=node('th',receipt?
+                        `${product.title} · ${labels[product.kind] || ''} · строка #${product.id} · Категория: ${product.category || 'Без категории'}`:product.title);
                     title.scope='row';tr.append(title);
                     for (const [label,value] of receipt?[['Количество',product.quantity],['Остаток',product.remaining]]:
                         [['Остаток',product.count],['Продано без закупочной цены',product.unknown_sold_count]]) {
@@ -361,7 +363,7 @@
         }
         include.onchange=loadRows;
         panel.append(header,node('p',`${s.point.title} · ${receipt?`${receipt.name} #${receipt.id}`:gifts?'подарочные товары':'неизвестные цены категории и новые товары без остатка'}`,'gift-point'),
-            node('p',receipt?'Каждая строка поставки имеет свою цену, даже если товар повторяется. Пустое поле — не менять; 0 — явно нулевая стоимость. Для завершённых поставок изменение пересчитает связанные FIFO-продажи, подарки и списания. Остаток и количество не изменяются.':
+            node('p',receipt?'Каждая строка поставки имеет свою цену, даже если товар повторяется. Пустое поле — не менять; 0 — явно нулевая стоимость. Пополнения пересчитывают связанную FIFO-себестоимость. Неизвестным списаниям можно назначить цену отдельно: исходная партия и продажи не меняются. Известные цены списаний не редактируются. Остаток и количество не изменяются.':
                 'Каждому товару назначается своя цена. Пустое поле — не менять, в том числе уже сохранённую строку черновика. 0 — явно нулевая стоимость. Известные цены не меняются. Цены старых продаж и остатка применятся только после завершения «Начального».','gift-hint'),
             ...(!gifts && !receipt?[includeLabel]:[]),notice,button('Обновить товары',()=>!s.busy && !s.pending && loadRows()),
             pasteLabel,insert,node('p','Порядок цен из Excel должен совпадать с порядком товаров в таблице. Пустые строки пропускаются. Между полями можно переходить Tab или Enter.','gift-hint'),
