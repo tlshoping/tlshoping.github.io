@@ -3,7 +3,8 @@
     function load(name) {
         if (!loaded.has(name)) loaded.set(name, new Promise((resolve, reject) => {
             const script = document.createElement('script');
-            const version=['inventoryDocuments.js','gifts.js'].includes(name)?'20261118-gift-initial-prices':'20261111-initial-prices';
+            const version=name==='inventoryDocuments.js'?'20261119-receipt-prices':
+                name==='gifts.js'?'20261118-gift-initial-prices':'20261111-initial-prices';
             script.src = `${name}?v=${version}`;
             script.onerror = () => {
                 script.remove();

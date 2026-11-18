@@ -81,7 +81,9 @@
             s.pending=null;
             lock(s,false);
             const ok=await load(s);
-            message(s,ok?(name==='inventory-document-complete'?'Поступление завершено. Остатки обновлены.':'Изменения сохранены в черновике. Остатки ещё не изменены.'):
+            message(s,ok?(name==='inventory-document-complete'?'Поступление завершено. Остатки обновлены.':
+                name==='inventory-receipt-prices'?'Закупочные цены сохранены. Связанная себестоимость пересчитана; количество товара не изменено.':
+                    'Изменения сохранены в черновике. Остатки ещё не изменены.'):
                 'Операция сохранена. Обновить список не удалось, нажмите «Обновить».',!ok);
             if (name==='inventory-document-complete' && typeof reload==='function') {
                 // Preserve the receipt screen while refreshing underlying catalog stock.
@@ -175,6 +177,10 @@
                         `Изменение остатка: ${incoming.quantity-outgoing.quantity} ед.`));
                 }
                 detail.append(entries(s,receipt,items,productId==null && receipt.status==='draft'));
+                if (productId==null && !receipt.cancelled_at && items.some(item=>
+                    item.kind==='receive' || (receipt.status==='draft' && item.kind==='cost'))) {
+                    detail.append(button('Редактировать закупочные цены',()=>openInitial(s,null,false,receipt)));
+                }
                 if (productId==null && receipt.status==='draft') detail.append(button('Завершить поступление',()=>{
                     if (confirm(`Завершить «${receipt.name}»? Все показанные изменения применятся к остаткам и себестоимости.`)) {
                         run(s,'inventory-document-complete',{id:receipt.id});
@@ -242,21 +248,22 @@
         if (!/^\d{1,10}(?:\.\d{1,2})?$/.test(normalized)) throw new Error('Введите неотрицательную цену с максимум двумя знаками после запятой');
         return normalized;
     }
-    function openInitial(s,category,gifts=false) {
-        const scope=()=>gifts?{gift_products:true}:{category_id:category,include_subcategories:include.checked};
+    function openInitial(s,category,gifts=false,receipt=null) {
+        const scope=()=>receipt?{receipt_id:receipt.id,expected_status:receipt.status}:
+            gifts?{gift_products:true}:{category_id:category,include_subcategories:include.checked};
         document.getElementById('inventoryInitialEditor')?.remove();
         const overlay=node('section',null,'gift-overlay');overlay.id='inventoryInitialEditor';
         overlay.setAttribute('role','dialog');overlay.setAttribute('aria-modal','true');
-        overlay.setAttribute('aria-label',gifts?'Начальные цены подарков':'Начальные цены категории');
+        overlay.setAttribute('aria-label',receipt?'Закупочные цены поставки':gifts?'Начальные цены подарков':'Начальные цены категории');
         const panel=node('div',null,'gift-panel inventory-panel inventory-initial-panel'),header=node('header',null,'gift-header');
         const focus=document.activeElement,values=new Map();
         let rows=[],revision=0,loading=true,dirty=false;
         function dismiss(force=false) {
-            if (!force && dirty && !confirm('Закрыть таблицу без добавления введённых цен в «Начальное»?')) return;
+            if (!force && dirty && !confirm('Закрыть таблицу без сохранения введённых цен?')) return;
             revision++;overlay.remove();focus?.focus();
         }
         const close=button('Закрыть',()=>dismiss());close.dataset.inventoryClose='true';
-        header.append(node('h2','Начальные закупочные цены'),close);
+        header.append(node('h2',receipt?'Закупочные цены поставки':'Начальные закупочные цены'),close);
         const include=node('input');include.type='checkbox';include.setAttribute('aria-label','Включить подкатегории');
         const includeLabel=node('label','Включить подкатегории','inventory-initial-checkbox');includeLabel.append(include);
         const notice=node('p','','gift-status');notice.setAttribute('role','status');
@@ -264,7 +271,8 @@
         paste.rows=3;paste.setAttribute('aria-label','Вставить столбец цен из Excel');
         paste.placeholder='100,50\n250\n0';pasteLabel.append(paste);
         const table=node('table',null,'inventory-initial-table'),head=node('thead'),heading=node('tr'),body=node('tbody');
-        for (const title of ['Товар','Остаток','Продано без закупочной цены','Закупочная цена, ₽']) {
+        for (const title of receipt?['Товар / строка','Количество','Остаток','Закупочная цена, ₽']:
+            ['Товар','Остаток','Продано без закупочной цены','Закупочная цена, ₽']) {
             const th=node('th',title);th.scope='col';heading.append(th);
         }
         head.append(heading);table.append(head,body);
@@ -281,45 +289,57 @@
                     if (value==null) return;
                     const row=rows[start+index];row.input.value=value;values.set(row.product.id,value);
                 });
-                dirty=true;notice.textContent='Цены перенесены в таблицу. Сверьте соответствие строк перед добавлением в «Начальное».';
+                dirty=true;notice.textContent='Цены перенесены в таблицу. Сверьте соответствие строк перед сохранением.';
             } catch (error) { notice.textContent=error.message; }
         }
         const insert=button('Перенести цены в таблицу',()=>applyColumn(paste.value));
         function saved(result) {
             if (result?.id && overlay.isConnected) {dirty=false;dismiss(true);open(s,result.id);}
         }
-        const save=button('Добавить цены в «Начальное»',async()=>{
+        const save=button(receipt?'Сохранить закупочные цены':'Добавить цены в «Начальное»',async()=>{
             if (loading || s.busy || s.pending) return;
             try {
                 const items=[];
                 for (const row of rows) {
                     if (!row.input.value.trim()) continue;
-                    try { items.push({catalog_id:row.product.id,unit_cost:priceValue(row.input.value)}); }
+                    try {
+                        const price=priceValue(row.input.value);
+                        if (receipt) {
+                            if (row.product.unit_cost!=null && Number(price)===Number(row.product.unit_cost)) continue;
+                            items.push({id:row.product.id,unit_cost:price,expected_unit_cost:row.product.unit_cost});
+                        } else items.push({catalog_id:row.product.id,unit_cost:price});
+                    }
                     catch (error) { row.input.focus();throw new Error(`${row.product.title}: ${error.message}`); }
                 }
-                if (!items.length) throw new Error('Введите хотя бы одну закупочную цену');
+                if (!items.length) throw new Error(receipt?'Нет изменённых закупочных цен':'Введите хотя бы одну закупочную цену');
                 if (items.length>1000) throw new Error('За один раз можно добавить не более 1000 цен');
                 notice.textContent='';
-                const result=await run(s,'inventory-initial-prices',{...scope(),items,request_key:crypto.randomUUID()});
+                if (receipt && !confirm(receipt.status==='completed'?
+                    'Изменить цены завершённой поставки? Пересчитаются связанные продажи, подарки и списания, прибыль и резерв. Количество товара не изменится.':
+                    'Сохранить новые цены в черновике поставки? Они применятся после его завершения.')) return;
+                const result=await run(s,receipt?'inventory-receipt-prices':'inventory-initial-prices',
+                    {...scope(),items,request_key:crypto.randomUUID()});
                 saved(result);
             } catch (error) {notice.textContent=error.message;}
         });
         async function loadRows() {
             const current=++revision;loading=true;save.disabled=true;insert.disabled=true;
-            notice.textContent=gifts?'Загружаю подарочные товары...':'Загружаю товары категории...';
+            notice.textContent=receipt?'Загружаю строки поставки...':gifts?'Загружаю подарочные товары...':'Загружаю товары категории...';
             try {
-                const products=(await api(s,'inventory-initial-products',scope())).data;
+                const products=(await api(s,receipt?'inventory-receipt-price-products':'inventory-initial-products',scope())).data;
                 if (!overlay.isConnected || current!==revision) return;
                 if (!Array.isArray(products)) throw new Error('Не удалось прочитать товары категории');
                 rows=products.map((product,index)=>{
-                    const tr=node('tr'),title=node('th',product.title);title.scope='row';tr.append(title);
-                    for (const [label,value] of [['Остаток',product.count],['Продано без закупочной цены',product.unknown_sold_count]]) {
+                    const tr=node('tr'),title=node('th',receipt?`${product.title} · строка #${product.id}`:product.title);
+                    title.scope='row';tr.append(title);
+                    for (const [label,value] of receipt?[['Количество',product.quantity],['Остаток',product.remaining]]:
+                        [['Остаток',product.count],['Продано без закупочной цены',product.unknown_sold_count]]) {
                         const td=node('td',String(value || 0));td.dataset.label=label;tr.append(td);
                     }
                     const td=node('td'),input=node('input');
                     td.dataset.label='Закупочная цена, ₽';input.type='text';input.inputMode='decimal';input.autocomplete='off';
                     input.dataset.catalogId=String(product.id);input.setAttribute('aria-label',`Закупочная цена ${product.title}`);
-                    input.value=values.has(product.id)?values.get(product.id):product.pending_cost ?? '';
+                    input.value=values.has(product.id)?values.get(product.id):(receipt?product.unit_cost:product.pending_cost) ?? '';
                     input.placeholder='Не менять';
                     input.oninput=()=>{values.set(product.id,input.value);dirty=true;};
                     input.onpaste=event=>{
@@ -333,16 +353,17 @@
                 });
                 body.replaceChildren(...rows.map(row=>row.tr));
                 notice.textContent=rows.length?`Позиций для назначения цены: ${rows.length}`:
-                    'Нет неизвестных цен или новых товаров без остатка.'+(gifts?'':' Можно включить подкатегории.');
+                    (receipt?'Нет редактируемых строк поставки.':'Нет неизвестных цен или новых товаров без остатка.'+(gifts?'':' Можно включить подкатегории.'));
                 loading=false;save.disabled=!rows.length;insert.disabled=!rows.length;
             } catch (error) {
                 if (overlay.isConnected && current===revision) notice.textContent=error.message;
             }
         }
         include.onchange=loadRows;
-        panel.append(header,node('p',`${s.point.title} · ${gifts?'подарочные товары':'неизвестные цены категории и новые товары без остатка'}`,'gift-point'),
-            node('p','Каждому товару назначается своя цена. Пустое поле — не менять, в том числе уже сохранённую строку черновика. 0 — явно нулевая стоимость. Известные цены не меняются. Цены старых продаж и остатка применятся только после завершения «Начального».','gift-hint'),
-            ...(!gifts?[includeLabel]:[]),notice,button('Обновить товары',()=>!s.busy && !s.pending && loadRows()),
+        panel.append(header,node('p',`${s.point.title} · ${receipt?`${receipt.name} #${receipt.id}`:gifts?'подарочные товары':'неизвестные цены категории и новые товары без остатка'}`,'gift-point'),
+            node('p',receipt?'Каждая строка поставки имеет свою цену, даже если товар повторяется. Пустое поле — не менять; 0 — явно нулевая стоимость. Для завершённых поставок изменение пересчитает связанные FIFO-продажи, подарки и списания. Остаток и количество не изменяются.':
+                'Каждому товару назначается своя цена. Пустое поле — не менять, в том числе уже сохранённую строку черновика. 0 — явно нулевая стоимость. Известные цены не меняются. Цены старых продаж и остатка применятся только после завершения «Начального».','gift-hint'),
+            ...(!gifts && !receipt?[includeLabel]:[]),notice,button('Обновить товары',()=>!s.busy && !s.pending && loadRows()),
             pasteLabel,insert,node('p','Порядок цен из Excel должен совпадать с порядком товаров в таблице. Пустые строки пропускаются. Между полями можно переходить Tab или Enter.','gift-hint'),
             table,save);
         overlay.append(panel);document.body.append(overlay);
@@ -350,7 +371,7 @@
         v.retry.onclick=async()=>{
             if (!s.pending) return;
             const pending=s.pending,result=await run(s,pending.name,pending.payload,true);
-            if (pending.name==='inventory-initial-prices') saved(result);
+            if (['inventory-initial-prices','inventory-receipt-prices'].includes(pending.name)) saved(result);
         };
         trap(overlay,close);close.focus();loadRows();
     }
